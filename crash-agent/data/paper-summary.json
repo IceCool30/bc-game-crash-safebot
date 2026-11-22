@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-11-22T13:53:15.139Z",
+  "rounds": 144,
+  "cashout": 2,
+  "stake": 1,
+  "results": [
+    {
+      "strategy": "streak-reversal",
+      "cashout": 2,
+      "stake": 1,
+      "bets": 17,
+      "wins": 10,
+      "losses": 7,
+      "winRate": 0.5882352941176471,
+      "staked": 17,
+      "net": 2.76,
+      "roi": 0.1623529411764706,
+      "roiCI": [
+        -0.303529,
+        0.625882
+      ],
+      "maxDrawdown": 3.04,
+      "rounds": 144
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { font-family: var(--font-sans, system-ui, sans-serif); color: var(--foreground, #eee); font-size: 13px; }
+  .wrap { padding: 4px 0 8px; }
+  h2 { font-size: 15px; margin: 0 0 2px; font-weight: 650; }
+  .sub { color: var(--muted-foreground, #9aa); margin: 0 0 16px; font-size: 12px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid var(--border, #333); border-radius: var(--radius, 10px); padding: 14px 16px; }
+  .panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-foreground, #9aa); margin: 0 0 12px; font-weight: 600; }
+  .row { display: grid; grid-template-columns: 58px 1fr; gap: 8px; align-items: center; margin-bottom: 9px; }
+  .label { color: var(--muted-foreground, #9aa); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 20px; }
+  .bar { position: absolute; left: 0; top: 0; height: 9px; border-radius: 3px; }
+  .bar.obs { background: var(--chart-1, #4ade80); }
+  .bar.theory { top: 11px; background: var(--chart-2, #64748b); opacity: .55; }
+  .val { position: absolute; right: 0; top: -1px; font-size: 10px; color: var(--muted-foreground, #9aa); font-variant-numeric: tabular-nums; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: var(--muted-foreground, #9aa); margin-top: 4px; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+  .stat { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed var(--border, #333); font-variant-numeric: tabular-nums; }
+  .stat:last-child { border-bottom: 0; }
+  .stat b { font-weight: 600; }
+  .good { color: var(--chart-1, #4ade80); }
+  .warn { color: var(--warning-foreground, #fbbf24); }
+  .note { margin-top: 14px; font-size: 12px; color: var(--muted-foreground, #9aa); line-height: 1.5; }
+  .base { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--foreground, #fff); opacity: .55; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>BC.Game Crash — does history predict the next round?</h2>
+  <p class="sub">119 consecutive rounds collected live (rounds 9,818,195 → 9,818,318). 99% RTP, provably fair.</p>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>Crash distribution: observed vs theory</h3>
+      <div class="row"><div class="label">≥ 1.5×</div><div class="track"><div class="bar obs" style="width:62.2%"></div><div class="bar theory" style="width:66.0%"></div><span class="val">62% / 66%</span></div></div>
+      <div class="row"><div class="label">≥ 2.0×</div><div class="track"><div class="bar obs" style="width:44.5%"></div><div class="bar theory" style="width:49.5%"></div><span class="val">45% / 50%</span></div></div>
+      <div class="row"><div class="label">≥ 3.0×</div><div class="track"><div class="bar obs" style="width:27.7%"></div><div class="bar theory" style="width:33.0%"></div><span class="val">28% / 33%</span></div></div>
+      <div class="row"><div class="label">≥ 5.0×</div><div class="track"><div class="bar obs" style="width:17.6%"></div><div class="bar theory" style="width:19.8%"></div><span class="val">18% / 20%</span></div></div>
+      <div class="row"><div class="label">≥ 10×</div><div class="track"><div class="bar obs" style="width:9.2%"></div><div class="bar theory" style="width:9.9%"></div><span class="val">9% / 10%</span></div></div>
+      <div class="legend"><span><span class="dot" style="background:var(--chart-1,#4ade80)"></span>observed</span><span><span class="dot" style="background:var(--chart-2,#64748b)"></span>theory 0.99/x</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>P(next round ≥ 2.0×) after a streak</h3>
+      <div class="row"><div class="label">base</div><div class="track"><div class="bar obs" style="width:44.5%;background:var(--foreground,#fff);opacity:.35"></div><span class="val">44.5%</span></div></div>
+      <div class="row"><div class="label">1 low</div><div class="track"><div class="bar obs" style="width:45.5%"></div><span class="val">45.5% · n=44</span></div></div>
+      <div class="row"><div class="label">2 lows</div><div class="track"><div class="bar obs" style="width:40.0%"></div><span class="val">40.0% · n=15</span></div></div>
+      <div class="row"><div class="label">3 lows</div><div class="track"><div class="bar obs" style="width:40.0%"></div><span class="val">40.0% · n=5</span></div></div>
+      <div class="row"><div class="label">1 high</div><div class="track"><div class="bar obs" style="width:43.4%"></div><span class="val">43.4% · n=53</span></div></div>
+      <div class="row"><div class="label">2 highs</div><div class="track"><div class="bar obs" style="width:39.1%"></div><span class="val">39.1% · n=23</span></div></div>
+      <div class="row"><div class="label">3 highs</div><div class="track"><div class="bar obs" style="width:44.4%"></div><span class="val">44.4% · n=9</span></div></div>
+      <div class="note" style="margin-top:8px">Every streak sits within noise of the base rate — no rebound, no hot hand.</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:18px">
+    <h3>Statistical tests</h3>
+    <div class="stat"><span>Lag-1 autocorrelation</span><b>r = −0.061</b></div>
+    <div class="stat"><span>Permutation test (5,000 shuffles)</span><b>p = 0.506 → noise</b></div>
+    <div class="stat"><span>House edge on every fixed cash-out</span><b class="warn">−1.00% per unit staked</b></div>
+    <div class="stat"><span>What cash-out changes</span><b>variance only, not expectation</b></div>
+  </div>
+
+  <p class="note">Bottom line: the 119 live rounds match the provably-fair distribution. Past results carry no signal about the next crash. A bot that watches history can reproduce this, but it can't gain an edge — every extra round simply pays the 1% house edge again.</p>
+</div>
+</body>
+</html>

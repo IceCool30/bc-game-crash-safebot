@@ -1,0 +1,29 @@
+{
+  "site": {
+    "crashUrl": "https://bc.game/game/crash",
+    "headless": true,
+    "userDataDir": ".profile",
+    "viewport": { "width": 1280, "height": 1000 }
+  },
+  "collect": {
+    "pollMs": 500,
+    "durationMinutes": 10,
+    "outFile": "data/rounds.jsonl"
+  },
+  "bet": {
+    "demo": true,
+    "stake": 0,
+    "autoCashout": 2.0,
+    "maxRounds": 200,
+    "maxSessionMinutes": 120,
+    "stopLoss": 0,
+    "stopWin": 0
+  },
+  "strategy": {
+    "name": "streak-reversal",
+    "lookback": 3,
+    "lowThreshold": 1.5,
+    "highThreshold": 2.0,
+    "betOnSignal": "long"
+  }
+}

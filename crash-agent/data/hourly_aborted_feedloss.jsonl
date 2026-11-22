@@ -1,0 +1,1 @@
+{"ts":"2026-11-22T15:21:28.535Z","hour":0,"cycleStart":"2026-11-22T15:06:28.529Z","phase":"missed","rule":{"decision":"BET","reason":"no near-bust in the last three (3.58, 36.45, 3.26) - proceed","busts":1,"mean":9.832,"last3":[3.58,36.45,3.26],"observed":5},"target":null}

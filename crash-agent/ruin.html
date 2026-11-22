@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #0b0f14; }
+  body { font-family: var(--font-sans, system-ui, sans-serif); color: #e6edf3; font-size: 13px; padding: 0; }
+  h2 { font-size: 15px; margin: 0 0 3px; font-weight: 650; }
+  .sub { color: #8b98a5; margin: 0 0 16px; font-size: 12px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi { border: 1px solid #2a3540; border-radius: 10px; padding: 10px 12px; }
+  .k { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: #8b98a5; }
+  .v { font-size: 18px; font-weight: 650; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .card { border: 1px solid #2a3540; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+  h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #8b98a5; margin: 0 0 10px; font-weight: 600; }
+  svg { display: block; width: 100%; height: 280px; }
+  .trade { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .trade > div { border: 1px solid #2a3540; border-radius: 8px; padding: 10px 12px; }
+  .trade .big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .red { color: #f87171; } .green { color: #4ade80; }
+  .note { font-size: 12px; line-height: 1.55; color: #8b98a5; }
+  .note b { color: #e6edf3; }
+</style></head><body>
+  <h2>All-in at 1.01× — 2 bets/hour for 5 days</h2>
+  <p class="sub">Stake = 100% of balance. 240 bets. 98.02% chance of winning each one.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="k">ruin by day 5</div><div class="v red">99.18%</div></div>
+    <div class="kpi"><div class="k">finish in profit</div><div class="v green">0.82%</div></div>
+    <div class="kpi"><div class="k">EV per bet</div><div class="v">−1.00%</div></div>
+    <div class="kpi"><div class="k">expected final</div><div class="v">0.094×</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Probability the run is still alive</h3>
+    <svg viewBox="0 0 800 280" preserveAspectRatio="none">
+      <line x1="52" y1="14.0" x2="784" y2="14.0" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".7"/>
+      <text x="44" y="17.5" text-anchor="end" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">100%</text><line x1="52" y1="92.7" x2="784" y2="92.7" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".7"/>
+      <text x="44" y="96.2" text-anchor="end" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">10%</text><line x1="52" y1="171.3" x2="784" y2="171.3" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".7"/>
+      <text x="44" y="174.8" text-anchor="end" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">1%</text><line x1="52" y1="250.0" x2="784" y2="250.0" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".7"/>
+      <text x="44" y="253.5" text-anchor="end" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">0.1%</text>
+      <line x1="52.0" y1="14" x2="52.0" y2="250" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".45"/>
+    <text x="52.0" y="264" text-anchor="middle" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">day 0</text><line x1="198.4" y1="14" x2="198.4" y2="250" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".45"/>
+    <text x="198.4" y="264" text-anchor="middle" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">day 1</text><line x1="344.8" y1="14" x2="344.8" y2="250" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".45"/>
+    <text x="344.8" y="264" text-anchor="middle" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">day 2</text><line x1="491.2" y1="14" x2="491.2" y2="250" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".45"/>
+    <text x="491.2" y="264" text-anchor="middle" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">day 3</text><line x1="637.6" y1="14" x2="637.6" y2="250" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".45"/>
+    <text x="637.6" y="264" text-anchor="middle" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">day 4</text><line x1="784.0" y1="14" x2="784.0" y2="250" stroke="var(--border,#2a3540)" stroke-width="1" opacity=".45"/>
+    <text x="784.0" y="264" text-anchor="middle" font-size="9.5" fill="var(--muted-foreground,#8b98a5)">day 5</text>
+      <polygon points="52,486.0 52.0,14.0 70.3,18.1 88.6,22.2 106.9,26.3 125.2,30.4 143.5,34.5 161.8,38.6 180.1,42.7 198.4,46.8 216.7,50.9 235.0,55.0 253.3,59.1 271.6,63.2 289.9,67.3 308.2,71.4 326.5,75.5 344.8,79.6 363.1,83.7 381.4,87.8 399.7,91.9 418.0,96.0 436.3,100.1 454.6,104.2 472.9,108.3 491.2,112.4 509.5,116.5 527.8,120.6 546.1,124.7 564.4,128.8 582.7,132.9 601.0,137.0 619.3,141.1 637.6,145.2 655.9,149.3 674.2,153.4 692.5,157.5 710.8,161.6 729.1,165.7 747.4,169.8 765.7,173.9 784.0,178.0 784.0,486.0" fill="rgba(74,222,128,.10)" />
+      <polyline points="52.0,14.0 70.3,18.1 88.6,22.2 106.9,26.3 125.2,30.4 143.5,34.5 161.8,38.6 180.1,42.7 198.4,46.8 216.7,50.9 235.0,55.0 253.3,59.1 271.6,63.2 289.9,67.3 308.2,71.4 326.5,75.5 344.8,79.6 363.1,83.7 381.4,87.8 399.7,91.9 418.0,96.0 436.3,100.1 454.6,104.2 472.9,108.3 491.2,112.4 509.5,116.5 527.8,120.6 546.1,124.7 564.4,128.8 582.7,132.9 601.0,137.0 619.3,141.1 637.6,145.2 655.9,149.3 674.2,153.4 692.5,157.5 710.8,161.6 729.1,165.7 747.4,169.8 765.7,173.9 784.0,178.0" fill="none" stroke="var(--chart-1,#4ade80)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+      <circle cx="198.4" cy="46.8" r="3" fill="var(--chart-1,#4ade80)"/>
+      <text x="204.4" y="40.8" text-anchor="start" font-size="9.5" fill="var(--foreground,#e6edf3)">38.3%</text><circle cx="344.8" cy="79.6" r="3" fill="var(--chart-1,#4ade80)"/>
+      <text x="350.8" y="73.6" text-anchor="start" font-size="9.5" fill="var(--foreground,#e6edf3)">14.7%</text><circle cx="491.2" cy="112.4" r="3" fill="var(--chart-1,#4ade80)"/>
+      <text x="497.2" y="106.4" text-anchor="start" font-size="9.5" fill="var(--foreground,#e6edf3)">5.6%</text><circle cx="637.6" cy="145.2" r="3" fill="var(--chart-1,#4ade80)"/>
+      <text x="643.6" y="139.2" text-anchor="start" font-size="9.5" fill="var(--foreground,#e6edf3)">2.1%</text><circle cx="784.0" cy="178.0" r="3" fill="var(--chart-1,#4ade80)"/>
+      <text x="777.0" y="172.0" text-anchor="end" font-size="9.5" fill="var(--foreground,#e6edf3)">0.82%</text>
+    </svg>
+  </div>
+
+  <div class="card">
+    <h3>The trade</h3>
+    <div class="trade">
+      <div><div class="k">if you survive all 240 bets</div><div class="big green">10.89×</div><div class="k">probability 0.82%</div></div>
+      <div><div class="k">expected outcome across all paths</div><div class="big red">0.094×</div><div class="k">i.e. you lose 91% in expectation</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Why it feels safe</h3>
+    <p class="note">At 1.01× the bet wins <b>98.02%</b> of the time, so the first ten bets look like free money — and they are, until the one round that crashes at <b>1.00×</b>. All-in staking means a single 1.98% event is terminal. The collected rounds already contain <b>5</b> such rounds in 188: the strategy would have been wiped out during data collection alone. The house edge is only 1% per bet, but compounding it over 240 all-in bets leaves you with <b>0.094×</b> of what you started.</p>
+  </div>
+</body></html>

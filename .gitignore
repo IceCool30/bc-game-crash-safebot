@@ -1,0 +1,11 @@
+node_modules/
+frames/
+**/.profile*
+**/.profile*/**
+crash-agent/.profile*
+crash-agent/.profile*/**
+*.log
+temp*
+bot_script*
+injected_bot*
+extract.js

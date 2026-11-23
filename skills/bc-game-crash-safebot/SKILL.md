@@ -36,7 +36,8 @@ The engine runs as an **in-page DOM injection inside Chromium**, burning **0 LLM
 | **Sequence Architecture** | **Discrete 5-Round Block** | Non-sliding block. Tracks rounds strictly from `1 of 5` to `5 of 5`. |
 | **Threshold Minimum** | **$\ge 1.50\times$ on All 5 Rounds** | Every round inside the active block must clear $\ge 1.50\times$. |
 | **Dual-Color Guardrail** | **Symmetric (Amber + Green)** | Must contain **$\ge 1$ Amber** ($1.50\times - 1.99\times$) AND **$\ge 1$ Green** ($\ge 2.00\times$). |
-| **Trap Disqualification** | **$5/5$ Pure Greens or $5/5$ Pure Ambers** | Automatically **FAILS & TERMINATES**. Discarded immediately. |
+| **Amber Cap Guardrail** | **Maximum 2 Ambers** | Must contain **at most 2 Ambers** ($1.50\times - 1.99\times$). If $\ge 3$ Ambers ($3/5, 4/5, 5/5$), block **FAILS & TERMINATES** (Amber Saturation Trap). Reset to `1 of 5`. |
+| **Trap Disqualification** | **$5/5$ Pure Greens, $5/5$ Pure Ambers, or $> 2$ Ambers** | Automatically **FAILS & TERMINATES**. Discarded immediately. |
 | **Reset Behavior** | **Hard Reset to `1 of 5`** | Any sub-$1.50\times$ crash or failed 5-round block resets the sequence counter to 0. Next round is `1 of 5`. |
 | **Execution Trigger** | **Round 6 Only** | Only when a block passes all 5 rounds does the bot stake on the **6th round of that sequence**. |
 | **Post-Bet Behavior** | **Immediate IDLE** | Once resolved, increments hourly bets to `1/1`, pre-stages new balance, and remains `IDLE` until next hour. |
@@ -65,13 +66,15 @@ flowchart TD
     
     Eval -- "5 Greens, 0 Amber" --> FailGreen["⛔ FAILED: Overheating Trap<br/>Terminated -> Next is Round 1"]
     Eval -- "5 Ambers, 0 Green" --> FailAmber["⛔ FAILED: Stagnation Trap<br/>Terminated -> Next is Round 1"]
-    Eval -- ">= 1 Amber AND >= 1 Green" --> Pass["✅ SEQUENCE VERIFIED<br/>Both Colors Present"]
+    Eval -- "> 2 Ambers (3, 4, or 5)" --> FailAmberCap["⛔ FAILED: Amber Saturation Trap<br/>Terminated -> Next is Round 1"]
+    Eval -- "1-2 Ambers AND 3-4 Greens" --> Pass["✅ SEQUENCE VERIFIED<br/>Qualified Momentum"]
     
     Pass --> Bet["🚀 STAKE ON ROUND 6<br/>All-In @ 1.02x Auto Cash Out"]
     Bet --> Settle["Settlement: +2% Compounding<br/>Phase -> IDLE until next hour"]
     
     FailGreen --> Start
     FailAmber --> Start
+    FailAmberCap --> Start
     Reset --> Start
 ```
 
@@ -247,6 +250,15 @@ Any agent in any new environment or workspace can copy this exact script and inj
         return;
       }
 
+      if (amberCount > 2) {
+        b.currentSequence = [];
+        b.readyToBetOnRound6 = false;
+        b.lastFailedReason = `Block contains ${amberCount} Ambers (max 2 allowed). Amber saturation trap. Terminated!`;
+        b.sequenceStatus = `⛔ FAILED: ${amberCount} Ambers (Max 2 allowed). Terminated! Next round is 1 of 5.`;
+        b.logs.push(`[Sequence] Block failed: ${amberCount} Ambers (> 2 max) [${seq.join(', ')}]. Discarded.`);
+        return;
+      }
+
       b.readyToBetOnRound6 = true;
       b.lastFailedReason = null;
       b.sequenceStatus = `✅ SEQUENCE PASSED: 5/5 (${amberCount} Amber, ${greenCount} Green). CLEAR TO STAKE ON ROUND 6!`;
@@ -309,14 +321,25 @@ Any agent in any new environment or workspace can copy this exact script and inj
   }
 
   function updatePreStaging() {
-    const textNodes = Array.from(document.querySelectorAll('span, div')).filter(e => e.innerText && e.innerText.includes('NGN'));
-    for (const node of textNodes) {
-      const match = node.innerText.match(/NGN\s*([\d,]+\.?\d*)/);
+    const walletEl = document.querySelector('.rr-mask');
+    if (walletEl) {
+      const match = walletEl.innerText.match(/NGN\s*([\d,]+\.?\d*)/);
       if (match) {
         const bal = parseFloat(match[1].replace(/,/g, ''));
         if (bal > 0) {
           window.__CRASH_BOT__.liveBalance = bal;
-          break;
+        }
+      }
+    } else {
+      const textNodes = Array.from(document.querySelectorAll('header span, nav span, span, div')).filter(e => e.innerText && e.innerText.includes('NGN'));
+      for (const node of textNodes) {
+        const match = node.innerText.match(/NGN\s*([\d,]+\.?\d*)/);
+        if (match) {
+          const bal = parseFloat(match[1].replace(/,/g, ''));
+          if (bal > 0 && bal < 500000) {
+            window.__CRASH_BOT__.liveBalance = bal;
+            break;
+          }
         }
       }
     }
@@ -431,7 +454,7 @@ Any agent in any new environment or workspace can copy this exact script and inj
           ${b.sequenceStatus}
         </div>
         <div style="display:flex; justify-content:space-between; font-size:10px; color:#8b949e; margin-top:4px;">
-          <span>Amber (>=1): <b style="color:${ambers >= 1 ? '#3fb950' : '#8b949e'};">${ambers}</b></span>
+          <span>Amber (1-2): <b style="color:${ambers >= 1 && ambers <= 2 ? '#3fb950' : (ambers > 2 ? '#f85149' : '#8b949e')};">${ambers}/2</b></span>
           <span>Green (>=1): <b style="color:${greens >= 1 ? '#3fb950' : '#8b949e'};">${greens}</b></span>
           <span>Block Valid: <b style="color:${b.readyToBetOnRound6 ? '#3fb950' : '#f85149'};">${b.readyToBetOnRound6 ? 'YES' : 'NO'}</b></span>
         </div>

@@ -32,8 +32,9 @@ The project was created to solve the fundamental vulnerability of Crash games: *
 | **Sequence Architecture** | **Discrete 5-Round Block** | Non-sliding block. Tracks strictly from `Round 1 of 5` to `Round 5 of 5`. |
 | **Threshold Minimum** | **$\ge 1.50\times$ on All 5 Rounds** | Any crash $< 1.50\times$ immediately terminates the sequence; next round resets to `1 of 5`. |
 | **Dual-Color Guardrail** | **Symmetric (Amber + Green)** | Must contain at least **1 Amber** ($1.50\times - 1.99\times$) AND at least **1 Green** ($\ge 2.00\times$). |
-| **Trap Disqualification** | **$5/5$ Greens or $5/5$ Ambers** | If Round 5 completes with all pure Greens or all pure Ambers, sequence **FAILS & TERMINATES**. Reset to `1 of 5`. |
-| **Execution Trigger** | **Round 6 Only** | Bet is placed exclusively on the **6th round** following a validated 5-round block. |
+| **Amber Cap Guardrail** | **Maximum 2 Ambers** | Must contain **at most 2 Ambers** ($1.50\times - 1.99\times$). If $\ge 3$ Ambers are present in the 5 rounds ($3/5, 4/5, 5/5$), the sequence **FAILS & TERMINATES** (Amber saturation trap). Reset to `1 of 5`. |
+| **Trap Disqualification** | **$5/5$ Greens, $5/5$ Ambers, or $> 2$ Ambers** | If Round 5 completes with pure Greens, pure Ambers, or more than 2 Ambers, sequence **FAILS & TERMINATES**. Reset to `1 of 5`. |
+| **Execution Trigger** | **Round 6 Only** | Bet is placed exclusively on the **6th round** following a validated 5-round block (1-2 Ambers + 3-4 Greens). |
 
 ---
 

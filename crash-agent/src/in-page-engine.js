@@ -72,6 +72,7 @@
       requireGreen: true,
       amberMin: 1.50,
       amberMax: 1.99,
+      amberMaxCount: 2,
       greenMin: 2.00,
       autoCashout: 1.02,
       maxBetsPerHour: 1
@@ -146,7 +147,17 @@
         return;
       }
 
-      // Passed condition: Both Amber >= 1 and Green >= 1!
+      // Fail condition C: More than 2 Ambers (User Rule: Max 2 Ambers allowed, amberCount > 2 fails)
+      if (amberCount > 2) {
+        b.currentSequence = []; // Hard reset! Next round is 1 of 5!
+        b.readyToBetOnRound6 = false;
+        b.lastFailedReason = `Block contains ${amberCount} Ambers (max 2 allowed). Amber saturation trap. Terminated!`;
+        b.sequenceStatus = `⛔ FAILED: ${amberCount} Ambers (Max 2 allowed). Terminated! Next round is 1 of 5.`;
+        b.logs.push(`[Sequence] Block failed: ${amberCount} Ambers (> 2 max) [${seq.join(', ')}]. Discarded.`);
+        return;
+      }
+
+      // Passed condition: Amber is 1 or 2, Green is >= 1!
       b.readyToBetOnRound6 = true;
       b.lastFailedReason = null;
       b.sequenceStatus = `✅ SEQUENCE PASSED: 5/5 (${amberCount} Amber, ${greenCount} Green). CLEAR TO STAKE ON ROUND 6!`;
@@ -215,14 +226,25 @@
 
   // Pre-staging helper
   function updatePreStaging() {
-    const textNodes = Array.from(document.querySelectorAll('span, div')).filter(e => e.innerText && e.innerText.includes('NGN'));
-    for (const node of textNodes) {
-      const match = node.innerText.match(/NGN\s*([\d,]+\.?\d*)/);
+    const walletEl = document.querySelector('.rr-mask');
+    if (walletEl) {
+      const match = walletEl.innerText.match(/NGN\s*([\d,]+\.?\d*)/);
       if (match) {
         const bal = parseFloat(match[1].replace(/,/g, ''));
         if (bal > 0) {
           window.__CRASH_BOT__.liveBalance = bal;
-          break;
+        }
+      }
+    } else {
+      const textNodes = Array.from(document.querySelectorAll('header span, nav span, span, div')).filter(e => e.innerText && e.innerText.includes('NGN'));
+      for (const node of textNodes) {
+        const match = node.innerText.match(/NGN\s*([\d,]+\.?\d*)/);
+        if (match) {
+          const bal = parseFloat(match[1].replace(/,/g, ''));
+          if (bal > 0 && bal < 500000) {
+            window.__CRASH_BOT__.liveBalance = bal;
+            break;
+          }
         }
       }
     }
@@ -341,7 +363,7 @@
           ${b.sequenceStatus}
         </div>
         <div style="display:flex; justify-content:space-between; font-size:10px; color:#8b949e; margin-top:4px;">
-          <span>Amber (>=1): <b style="color:${ambers >= 1 ? '#3fb950' : '#8b949e'};">${ambers}</b></span>
+          <span>Amber (1-2): <b style="color:${ambers >= 1 && ambers <= 2 ? '#3fb950' : (ambers > 2 ? '#f85149' : '#8b949e')};">${ambers}/2</b></span>
           <span>Green (>=1): <b style="color:${greens >= 1 ? '#3fb950' : '#8b949e'};">${greens}</b></span>
           <span>Block Valid: <b style="color:${b.readyToBetOnRound6 ? '#3fb950' : '#f85149'};">${b.readyToBetOnRound6 ? 'YES' : 'NO'}</b></span>
         </div>

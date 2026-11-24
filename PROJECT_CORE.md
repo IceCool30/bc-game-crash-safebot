@@ -1,23 +1,24 @@
-# PROJECT CORE: BC.Game Crash SafeBot Protocol
+# PROJECT_CORE.md: BC.Game Crash SafeBot Core Architecture
 
-> [!CAUTION]
-> ### STRICT IMMUTABILITY DIRECTIVE
-> **NO AGENT IS PERMITTED TO ALTER, REWRITE, LOOSEN, OR BYPASS ANY CORE RULE, THRESHOLD, OR CADENCE IN THIS PROJECT FOR ANY REASON.**
-> Every agent inspecting or operating this repository is strictly barred from making changes to the core rules of this project or the underlying execution engines unless the human user explicitly and unambiguously commands an exact change.
-> Regardless of personal judgment, theoretical optimization, simulated edge, or perceived urgency, an agent possesses **ZERO AUTHORITY** to modify these rules.
+> [!CRITICAL]
+> **IMMUTABLE CORE SPECIFICATION FOR BC.GAME CRASH SAFEBOT**
+> This document defines the exact architecture, rules, pattern detection, lag sentinels, and emergency fail-safes.
+> No agent may alter these rules unless explicitly ordered by the user.
 
 ---
 
-## 1. System Overview & Genesis
+## 1. Executive Summary & Purpose
 
-**BC.Game Crash SafeBot** is an institutional-grade, capital-preservation betting system specifically engineered for **BC.Game Crash** (`https://bc.game/game/crash`).
+The BC.Game Crash SafeBot is an autonomous, zero-token in-browser engine designed to capture high-probability compounding growth while guarding against the two most lethal vulnerabilities in Crash games:
+1. **Lag & Desynchronization Traps**: Placing bets during browser frame drops, packet loss, or canvas freezes where cashout requests fail to register.
+2. **Timing & Stagnation Traps**: Staking during unverified market phases without clear momentum signals.
 
-The project was created to solve the fundamental vulnerability of Crash games: **variance traps**. While the house edge is mathematically static (1%), multiplier distributions fluctuate wildly through heat cycles and stagnation cycles.
-
-### The Strategic Edge:
-* By anchoring our cashout to **`1.02×`**, the baseline probability of winning any single round is **`97.06%`** ($99 / 102$).
-* By enforcing a **Discrete Sequence Block Protocol**, the engine enters only during verified momentum windows and filters out both the **Overheating Trap** (runs of pure green multipliers heading into a sub-1.10x crash) and the **Stagnation Trap** (runs of weak ambers with zero upward thrust).
-* By enforcing a **Strict 1 Bet Per Hour Cadence**, the system limits exposure to 24 discrete events per day, yielding compound growth while minimizing drawdowns.
+The engine executes the **Red ➔ Moon Protocol**:
+* **The Mathematical Edge**: At **`1.02×`**, the baseline mathematical win probability of any individual round is **`97.06%`** ($99 / 102$).
+* **The Momentum Signal**: By entering only on the immediate round after a **Moon ($\ge 10.00\times$)** that was preceded by a **Red ($1.00\times - 1.99\times$)**, the engine targets momentum transitions.
+* **Continuous Active Hunting**: Uncapped hourly limits allow the bot to actively hunt 24/7 whenever the trigger pattern presents itself.
+* **Pre-Flight Lag & Motion Sentinel**: Uses real-time `requestAnimationFrame` delta tracking to hold bets whenever the Crash curve/countdown stutters.
+* **Emergency Abort**: Automatically clicks "Cancel" on a queued bet if lag strikes or pattern invalidates before the round starts.
 
 ---
 
@@ -25,16 +26,13 @@ The project was created to solve the fundamental vulnerability of Crash games: *
 
 | Rule | Specification | Guardrail Enforcement |
 | :--- | :--- | :--- |
-| **Auto Cash Out** | **`1.02×`** | Hardcoded. Never increased for "extra profit" or decreased below 1.02x. |
-| **Stake Allocation** | **100% All-In Compounding** | Entire liquid balance is pre-staged continuously into `input[0]`. |
-| **Cadence Limit** | **Maximum 1 Bet Per Hour** | Aligned to West African Time (`UTC+1`). Once 1 bet is settled, state locks in `IDLE` until top of next hour. |
-| **Top-of-Hour Arming** | **Zero Observation Delay (0 min)** | Arms into `HUNTING (READY)` mode from millisecond 0 (`HH:00:00.000` WAT). |
-| **Sequence Architecture** | **Discrete 5-Round Block** | Non-sliding block. Tracks strictly from `Round 1 of 5` to `Round 5 of 5`. |
-| **Threshold Minimum** | **$\ge 1.50\times$ on All 5 Rounds** | Any crash $< 1.50\times$ immediately terminates the sequence; next round resets to `1 of 5`. |
-| **Dual-Color Guardrail** | **Symmetric (Amber + Green)** | Must contain at least **1 Amber** ($1.50\times - 1.99\times$) AND at least **1 Green** ($\ge 2.00\times$). |
-| **Amber Cap Guardrail** | **Maximum 2 Ambers** | Must contain **at most 2 Ambers** ($1.50\times - 1.99\times$). If $\ge 3$ Ambers are present in the 5 rounds ($3/5, 4/5, 5/5$), the sequence **FAILS & TERMINATES** (Amber saturation trap). Reset to `1 of 5`. |
-| **Trap Disqualification** | **$5/5$ Greens, $5/5$ Ambers, or $> 2$ Ambers** | If Round 5 completes with pure Greens, pure Ambers, or more than 2 Ambers, sequence **FAILS & TERMINATES**. Reset to `1 of 5`. |
-| **Execution Trigger** | **Round 6 Only** | Bet is placed exclusively on the **6th round** following a validated 5-round block (1-2 Ambers + 3-4 Greens). |
+| **Auto Cash Out** | **`1.02×`** | Hardcoded. Never increased for "extra profit" or reduced below 1.02x. |
+| **Stake Allocation** | **100% All-In Compounding** | Entire liquid balance is pre-staged continuously into the betting input. |
+| **Cadence Limit** | **Continuous Active Hunting** | No hourly restriction. Hunts 24/7 across all market cycles. |
+| **Pattern Trigger** | **`Red` ➔ `Moon`** | **Round $N-1$**: Red ($1.00\times - 1.99\times$).<br/>**Round $N$**: Moon ($\ge 10.00\times$). Prior rounds do not matter. |
+| **Execution Point** | **Immediate Next Round (Round $N+1$)** | Bet placed for the round immediately following the Moon crash. |
+| **Lag & Motion Sentinel** | **Real-Time Frame Rate Monitor** | Tracks frame deltas via `requestAnimationFrame`. If $\Delta t > 200\text{ms}$, flags lag and holds bets. Requires 3s clean flight to clear. |
+| **Emergency Abort** | **Queued Bet Cancellation** | If a bet is queued and lag strikes or pattern verification fails, clicks **`Cancel`** immediately before the round launches. |
 
 ---
 
@@ -45,37 +43,53 @@ bc-game-crash-safebot/
 ├── crash-agent/
 │   ├── config.json              # Platform & logging configuration
 │   ├── data/
-│   │   ├── hourly.jsonl         # Permanent audit ledger of bets, balances, and PnL
-│   │   └── rounds.jsonl         # Raw multiplier stream for historical distribution modeling
+│   │   └── hourly.jsonl         # Compounding audit ledger & bet records
 │   └── src/
-│       ├── in-page-engine.js    # Self-contained in-page DOM Chromium engine (0 token burn)
-│       └── hourly.js            # Node.js Playwright CLI controller for external automation
-├── AGENTS.md                    # Agent governance contract and immutable rule enforcement
-├── PROJECT_CORE.md              # Master architectural blueprint and protocol specifications
-└── README.md                    # Project documentation, mathematical model, and quickstart
+│       └── in-page-engine.js    # Master in-browser DOM automation engine
+├── skills/
+│   └── bc-game-crash-safebot/
+│       └── SKILL.md             # Autonomous operational runbook & skills spec
+├── PROJECT_CORE.md              # Project architectural blueprint (this file)
+└── AGENTS.md                    # Immutable directives for all AI agents
 ```
-
-### In-Page DOM Engine (`in-page-engine.js`):
-* Injected into the live game tab via `preview_evaluate`.
-* Operates on an internal 1-second interval (`setInterval`).
-* Consumes **zero LLM tokens / zero API credits** while continuously tracking and managing state in the background.
-* Extracts crash history pills (`span.whitespace-nowrap.font-extrabold`) sorted descending by horizontal screen position (`b.x - a.x`), ensuring index 0 is always the newest round.
-* Automatically syncs and pre-stages 100% of detected liquid NGN balance into the amount input.
-* Mounts a real-time HUD (`#__crash_bot_panel`) displaying the active sequence progress (`X of 5`), sequence status, dual-color counts, and hour quota.
 
 ---
 
-## 4. Disaster Recovery Runbook (Cold Restart)
+## 4. State Machine Diagram
 
-When a host restarts, browser crashes, or the background session is severed:
+```mermaid
+flowchart TD
+    Hunt["🔍 Phase: HUNTING (Active 24/7)<br/>Scanning Live History Pills"] --> Check{"Evaluate Last 2 Rounds"}
+    
+    Check -- "Round N-1: Red (< 2.00x)<br/>AND Round N: Moon (>= 10.00x)" --> LagCheck{"Lag Sentinel Check<br/>Smooth Frame Rate for 3s?"}
+    Check -- "Other Pattern" --> Hunt
+    
+    LagCheck -- "Lag Spike / Stutter (dt > 200ms)" --> LagHold["⚠️ HOLD (LAG DETECTED)<br/>Stake = 0, Waiting for Smooth Flight"]
+    LagHold --> LagCheck
+    
+    LagCheck -- "Smooth Flight (60 FPS)" --> QueueBet["🚀 QUEUE BET (Next Round)<br/>100% All-In @ 1.02x Auto Cash Out"]
+    
+    QueueBet --> CountdownWindow{"Countdown Window (6.0s ➔ 0.0s)"}
+    
+    CountdownWindow -- "Lag Spike Detected" --> Abort["🚨 EMERGENCY CANCEL<br/>Click Cancel, Zero Stake, Hold"]
+    CountdownWindow -- "Pattern Invalidated" --> Abort
+    Abort --> Hunt
+    
+    CountdownWindow -- "Round Launches Cleanly" --> Flight["🛸 Round In Flight<br/>Waiting for Auto Cash Out @ 1.02x"]
+    
+    Flight -- "Multiplier >= 1.02x" --> Win["🏆 WIN (+2% Compounding)<br/>Balance Updated, Return to Hunting"]
+    Flight -- "Instant Bust < 1.02x" --> Loss["💥 LOSS<br/>Audit Logged, Return to Hunting"]
+    
+    Win --> Hunt
+    Loss --> Hunt
+```
 
-1. **Verify Preview Tab**:
-   Check active tabs with `preview_status`. If missing, open `https://bc.game/game/crash`.
-2. **Verify Account Session**:
-   Confirm user is logged in and liquid balance is displayed.
-3. **Inject Engine**:
-   Execute `crash-agent/src/in-page-engine.js` via `preview_evaluate`.
-4. **Inspect HUD Panel**:
-   Confirm `#_crash_bot_panel` mounts with active WAT clock, balance, and sequence counter.
-5. **No Token Polling**:
-   Do NOT run polling loops in chat. The in-page engine handles 100% of round tracking, sequence evaluation, bet execution, and settlement locally in Chromium.
+---
+
+## 5. In-Page Zero-Token Operations & Disaster Recovery
+
+* **Zero Token Burn**: The engine operates purely inside the Chromium DOM via `setInterval` and `requestAnimationFrame`. No background LLM tool polling loops.
+* **Disaster Recovery**:
+  1. Open BC.Game Crash tab: `https://bc.game/game/crash`.
+  2. Inject `crash-agent/src/in-page-engine.js` via `preview_evaluate`.
+  3. Confirm `#_crash_bot_panel` mounts and displays `RED ➔ MOON PROTOCOL (1.02×)` and `CONTINUOUS`.

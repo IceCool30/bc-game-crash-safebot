@@ -1,6 +1,6 @@
 ---
 name: bc-game-crash-safebot
-description: Autonomous BC.Game Crash engine executing the continuous Red -> Moon 1.02x protocol with in-page animation frame lag detection, emergency queued order abort, and zero-token DOM operations. Automatically inspects the browser, injects the in-page engine, and confirms active hunting immediately upon skill invocation, even without any user prompt.
+description: Autonomous BC.Game Crash engine executing the continuous Red -> Moon 1.02x protocol with in-page animation frame lag detection, emergency queued order abort, and zero-token DOM operations. Automatically scaffolds the workspace (AGENTS.md, PROJECT_CORE.md, engine scripts), inspects the browser, injects the in-page engine, and confirms active hunting immediately upon skill invocation, even without any user prompt.
 ---
 
 # BC.Game Crash SafeBot: Red ➔ Moon Protocol
@@ -17,24 +17,36 @@ description: Autonomous BC.Game Crash engine executing the continuous Red -> Moo
 > **TRIGGER-AND-EXECUTE BEHAVIOR (NO PROMPT REQUIRED):**
 > When this skill is invoked—whether accompanied by a user prompt or sent as a blank/standalone skill invocation—the AI agent must NOT pause to ask questions, explain background theory, or wait for further input.
 > 
-> The agent must **immediately and autonomously execute the 3-step activation workflow**:
+> The agent must **immediately and autonomously execute the complete setup and activation workflow**:
 > 
-> 1. **Inspect / Open Browser Tab**:
->    * Call `preview_status` to inspect current browser tabs.
->    * If no active tab is at `https://bc.game/game/crash`, call `preview_open` with `url: "https://bc.game/game/crash"`, `profileId: "default"`.
+> ### Step 0: Workspace Scaffolding & Health Check
+> Before opening the browser, check if the active workspace is equipped with the core specification and engine files:
+> 1. Check if [`AGENTS.md`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/AGENTS.md), [`PROJECT_CORE.md`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/PROJECT_CORE.md), and [`crash-agent/src/in-page-engine.js`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/crash-agent/src/in-page-engine.js) exist in the current working directory.
+> 2. **If missing (e.g. empty or new workspace)**:
+>    * **Primary Method (Git Clone)**: Run:
+>      ```bash
+>      git clone https://github.com/IceCool30/bc-game-crash-safebot.git .
+>      ```
+>    * **Fallback Method (Direct Scaffolding from Skill)**:
+>      * Copy [`scripts/in-page-engine.js`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/skills/bc-game-crash-safebot/scripts/in-page-engine.js) into `crash-agent/src/in-page-engine.js`.
+>      * Write [`AGENTS.md`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/AGENTS.md) and [`PROJECT_CORE.md`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/PROJECT_CORE.md) using Section 5 below.
 > 
-> 2. **Inject the Autonomous In-Page Engine**:
->    * Read the engine script: [`crash-agent/src/in-page-engine.js`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/crash-agent/src/in-page-engine.js) (or [`skills/bc-game-crash-safebot/scripts/in-page-engine.js`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/skills/bc-game-crash-safebot/scripts/in-page-engine.js)).
->    * Evaluate the full script into the BC.Game Crash page using `preview_evaluate`.
+> ### Step 1: Inspect / Open Browser Tab
+> * Call `preview_status` to inspect current browser tabs.
+> * If no active tab is open to `https://bc.game/game/crash`, call `preview_open` with `url: "https://bc.game/game/crash"`, `profileId: "default"`.
 > 
-> 3. **Verify and Confirm Active Hunting**:
->    * Call `preview_evaluate` with expression `document.getElementById('__crash_bot_panel')?.innerText` to verify that the floating HUD card mounted.
->    * Verify that the HUD confirms:
->      * `RED ➔ MOON PROTOCOL (1.02×)`
->      * `CONTINUOUS`
->      * `Phase: HUNTING`
->      * Smooth frame rate (`🟢 Smooth`)
->    * Deliver a concise confirmation message to the user that the engine is live in the browser DOM, actively hunting 24/7, and consuming zero API tokens.
+> ### Step 2: Inject the Autonomous In-Page Engine
+> * Read the engine script: [`crash-agent/src/in-page-engine.js`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/crash-agent/src/in-page-engine.js) (or [`scripts/in-page-engine.js`](file:///C:/Users/john.bisong/.t3/scratch/2026-11-22-is-it-possible-um-agent-0c738edb/skills/bc-game-crash-safebot/scripts/in-page-engine.js)).
+> * Evaluate the full script into the BC.Game Crash page using `preview_evaluate`.
+> 
+> ### Step 3: Verify and Confirm Active Hunting
+> * Call `preview_evaluate` with expression `document.getElementById('__crash_bot_panel')?.innerText` to verify that the floating HUD card mounted.
+> * Verify that the HUD confirms:
+>   * `RED ➔ MOON PROTOCOL (1.02×)`
+>   * `CONTINUOUS`
+>   * `Phase: HUNTING`
+>   * Smooth frame rate (`🟢 Smooth`)
+> * Deliver a concise confirmation message to the user that the workspace is verified, the engine is live in the browser DOM, actively hunting 24/7, and consuming zero API tokens.
 
 ---
 
@@ -112,3 +124,50 @@ If the system or browser restarted:
    * `CONTINUOUS`
    * `🟢 Smooth (60 FPS)`
    * `Phase: HUNTING`
+
+---
+
+## 5. Automated Workspace Scaffolding Templates
+
+If setting up in a fresh workspace without internet access to clone the GitHub repository, create the following core files:
+
+### File 1: `AGENTS.md`
+```markdown
+# AGENTS.md: Mandatory Directives for AI Agents
+
+> [!CRITICAL]
+> **READ BEFORE TOUCHING ANY CODE OR STATE IN THIS WORKSPACE.**
+
+## 1. Strict Immutability Rule
+Every AI agent operating in this repository is strictly barred from modifying, rewriting, loosening, or altering:
+1. The **`1.02×`** Auto Cash Out multiplier.
+2. The **100% All-In** capital allocation rule.
+3. The **Continuous Active Hunting** cadence (no hourly throttle; scans and executes 24/7).
+4. The **Red ➔ Moon Trigger Pattern**:
+   - Round $N-1$: Red (`1.00× – 1.99×`). Prior rounds do not matter.
+   - Round $N$: Moon (`≥ 10.00×`).
+   - Round $N+1$: Stake executed on the immediate round following the Moon crash.
+5. The **Pre-Flight Lag & Motion Sentinel**:
+   - Tracks live animation frame rate via `requestAnimationFrame`.
+   - Any frame gap $\Delta t > 200\text{ms}$ halts order placement until 3 seconds of clean flight elapse.
+6. The **Emergency Queued Order Cancellation Engine**:
+   - Clicks "Cancel" immediately if lag spikes or pattern invalidation occurs while an order is queued.
+   - Resets stake to 0 for absolute capital safety.
+
+**AN AGENT HAS ZERO AUTHORITY TO CHANGE THESE RULES UNLESS THE HUMAN USER SPECIFICALLY AND UNAMBIGUOUSLY ORDERS AN EXACT MODIFICATION.**
+
+## 2. In-Page Zero-Token Operations
+* The active engine runs in the Chromium DOM (`window.__crash_bot_interval` and `window.__crash_bot_raf`).
+* **Never** run continuous polling loops or sleep intervals using tool calls in chat. Doing so burns user API credits without purpose.
+* Inspect state using single-shot `preview_evaluate` calls only when answering direct user questions or verifying system health.
+
+## 3. Disaster Recovery
+If the server or system restarted:
+1. Check tab with `preview_status`.
+2. Open BC.Game Crash tab: `https://bc.game/game/crash`.
+3. Evaluate `crash-agent/src/in-page-engine.js` into active tab.
+4. Confirm `#_crash_bot_panel` mounts and reports `RED ➔ MOON PROTOCOL (1.02×)` and `CONTINUOUS`.
+```
+
+### File 2: `PROJECT_CORE.md`
+Reference the master architectural specification in the repository root or clone from `https://github.com/IceCool30/bc-game-crash-safebot.git`.

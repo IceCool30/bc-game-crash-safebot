@@ -27,7 +27,7 @@ The engine executes the **Red ➔ Moon Protocol**:
 | Rule | Specification | Guardrail Enforcement |
 | :--- | :--- | :--- |
 | **Auto Cash Out** | **`1.02×`** | Hardcoded. Never increased for "extra profit" or reduced below 1.02x. |
-| **Stake Allocation** | **100% All-In Compounding** | Entire liquid balance is pre-staged continuously into the capital input. |
+| **Stake Allocation** | **100% All-In Compounding (Just-In-Time)** | Amount input is strictly zeroed (`0`) during hunting, populated with 100% balance upon Moon pattern trigger, and wiped back to `0` immediately upon settlement. |
 | **Cadence Limit** | **Continuous Active Hunting** | No hourly restriction. Hunts 24/7 across all market cycles. |
 | **Pattern Trigger** | **`Red` ➔ `Moon`** | **Round $N-1$**: Red ($1.00\times - 1.99\times$).<br/>**Round $N$**: Moon ($\ge 10.00\times$). Prior rounds do not matter. |
 | **Execution Point** | **Immediate Next Round (Round $N+1$)** | Order executed for the round immediately following the Moon crash. |

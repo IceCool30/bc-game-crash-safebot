@@ -200,14 +200,24 @@
         cashoutInput.dispatchEvent(new Event('change', { bubbles: true }));
       }
 
-      // Pre-stage 100% balance only when safe (not lagging, and ready)
-      if ((window.__CRASH_BOT__.readyToExecuteNextRound || window.__CRASH_BOT__.readyToBetNextRound) && !window.__CRASH_BOT__.lagSentinel.lagDetected) {
+      // Just-In-Time Stake Allocation:
+      // While hunting (no trigger active and no order queued), keep amount locked at '0' to prevent accidental placement.
+      // Fill 100% balance ONLY when pattern is verified (Moon crashed after Red) and animation is smooth.
+      const isReadyToExecute = (window.__CRASH_BOT__.readyToExecuteNextRound || window.__CRASH_BOT__.readyToBetNextRound);
+      const isOrderQueued = (window.__CRASH_BOT__.queuedOrderActive || window.__CRASH_BOT__.queuedBetActive);
+      const isSmooth = !window.__CRASH_BOT__.lagSentinel.lagDetected;
+
+      if (isReadyToExecute && isSmooth) {
         const maxStake = (Math.floor(window.__CRASH_BOT__.liveBalance * 100) / 100).toFixed(2);
         if (amountInput.value !== maxStake && window.__CRASH_BOT__.liveBalance > 0) {
           amountInput.value = maxStake;
           amountInput.dispatchEvent(new Event('input', { bubbles: true }));
           amountInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
+      } else if (!isOrderQueued && amountInput.value !== '0' && amountInput.value !== '') {
+        amountInput.value = '0';
+        amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+        amountInput.dispatchEvent(new Event('change', { bubbles: true }));
       }
     }
   }
@@ -289,6 +299,14 @@
           pnl
         });
         console.log(`[Crash Bot] ORDER SETTLED at ${newest.toFixed(2)}× -> ${won ? 'WIN (+1.02x)' : 'LOSS'}. Resuming hunting.`);
+
+        // Immediately zero out the amount input box upon settlement
+        const inputs = Array.from(document.querySelectorAll('input'));
+        if (inputs.length >= 1) {
+          inputs[0].value = '0';
+          inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
+          inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+        }
       }
 
       // Re-evaluate pattern on every new pill

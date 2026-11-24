@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Models the exact strategy that was described:
 //
-//   - 2 bets per hour
+//   - 2 rounds per hour
 //   - auto cash-out 1.01x
 //   - stake = 100% of the current balance ("maximum amount in balance")
 //   - run for N days
@@ -128,11 +128,11 @@ function main() {
   console.log('');
   console.log('=== ALL-IN AT 1.01x ===');
   console.log(`  cash-out                 ${CASHOUT.toFixed(2)}x`);
-  console.log(`  P(win a bet)             ${pct(res.pWin)}   (0.99 / ${CASHOUT})`);
-  console.log(`  P(lose a bet)            ${pct(res.pLoss)}`);
-  console.log(`  EV per bet               ${pct(res.pWin * CASHOUT - 1)}`);
+  console.log(`  P(win a round)             ${pct(res.pWin)}   (0.99 / ${CASHOUT})`);
+  console.log(`  P(lose a round)            ${pct(res.pLoss)}`);
+  console.log(`  EV per round               ${pct(res.pWin * CASHOUT - 1)}`);
   console.log('');
-  console.log(`  schedule                 ${BETS_PER_HOUR} bets/hour for ${DAYS} days = ${res.totalBets} bets`);
+  console.log(`  schedule                 ${BETS_PER_HOUR} rounds/hour for ${DAYS} days = ${res.totalBets} rounds`);
   console.log('');
   console.log(`  P(ruin by the end)       ${pct(res.ruinRate)}`);
   console.log(`  P(finish in profit)      ${pct(res.profitableRate)}`);
@@ -155,7 +155,7 @@ function main() {
     if (real.examples.length) {
       console.log(`  examples                 ${real.examples.map((e) => e.mult.toFixed(2)).join(', ')}`);
     }
-    console.log(`  verdict                  ${real.losses > 0 ? 'an all-in 1.01x bet would already have been wiped out' : 'no loss in this sample — which is why 2% feels safe until it is not'}`);
+    console.log(`  verdict                  ${real.losses > 0 ? 'an all-in 1.01x round would already have been wiped out' : 'no loss in this sample — which is why 2% feels safe until it is not'}`);
   }
 
   // machine-readable for the chart

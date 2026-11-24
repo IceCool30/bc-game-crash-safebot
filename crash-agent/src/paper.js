@@ -2,7 +2,7 @@
 // Paper-trading simulator.
 //
 // Replays every collected round through a strategy and settles each hypothetical
-// bet against the real crash value. Nothing is sent to the site, no account is
+// round against the real crash value. Nothing is sent to the site, no account is
 // touched. This is the observable version of the loop: same decision logic, same
 // stake rules, same cash-out, but the money is imaginary.
 //
@@ -41,7 +41,7 @@ function loadRounds() {
   return [...byRound.values()].sort((a, b) => a.round - b.round);
 }
 
-// Settle one hypothetical bet.
+// Settle one hypothetical round.
 //   long  = "crash will reach the cash-out"   -> pays cashout, loses stake otherwise
 //   short = "crash will stay below the cash-out" -> pays 0.98*cashout (BC's Red
 //           ladder is priced 2% under fair), loses stake otherwise
@@ -59,7 +59,7 @@ function simulate(rounds, opts) {
   const { strategyName, cashout, stake, minHistory } = opts;
   const decideFn = STRATEGIES[strategyName];
   const history = [];
-  const bets = [];
+  const executedOrders = [];
   let equity = 0;
   let peak = 0;
   let maxDrawdown = 0;
@@ -73,7 +73,7 @@ function simulate(rounds, opts) {
         equity += s.pnl;
         peak = Math.max(peak, equity);
         maxDrawdown = Math.max(maxDrawdown, peak - equity);
-        bets.push({
+        executedOrders.push({
           round: r.round,
           signal: d.signal,
           reason: d.reason,
@@ -88,33 +88,33 @@ function simulate(rounds, opts) {
     history.push(r.mult);
   }
 
-  const wins = bets.filter((b) => b.won).length;
-  const losses = bets.length - wins;
-  const staked = bets.length * stake;
+  const wins = executedOrders.filter((b) => b.won).length;
+  const losses = executedOrders.length - wins;
+  const staked = executedOrders.length * stake;
   return {
     strategy: strategyName,
     cashout,
     stake,
-    bets: bets.length,
+    orders: executedOrders.length,
     wins,
     losses,
-    winRate: bets.length ? wins / bets.length : 0,
+    winRate: executedOrders.length ? wins / executedOrders.length : 0,
     staked,
     net: +equity.toFixed(6),
     roi: staked ? equity / staked : 0,
-    roiCI: bootstrapROI(bets, stake),
+    roiCI: bootstrapROI(executedOrders, stake),
     maxDrawdown: +maxDrawdown.toFixed(6),
-    rounds: rounds.length,
-    detail: bets,
+    rounds: executedOrders.length,
+    detail: executedOrders,
   };
 }
 
-// Resample the settled bets 4,000 times to get a 95% interval on ROI.
-// With a few hundred bets the interval is wide enough to swallow the entire
+// Resample the settled rounds 4,000 times to get a 95% interval on ROI.
+// With a few hundred rounds the interval is wide enough to swallow the entire
 // "edge" a lucky streak appears to show.
-function bootstrapROI(bets, stake) {
-  if (bets.length < 5) return null;
-  const pnls = bets.map((b) => b.pnl / stake);
+function bootstrapROI(rounds, stake) {
+  if (rounds.length < 5) return null;
+  const pnls = rounds.map((b) => b.pnl / stake);
   const n = pnls.length;
   const out = [];
   for (let k = 0; k < 4000; k++) {
@@ -137,7 +137,7 @@ function printRun(res) {
   console.log(`  strategy            ${res.strategy}`);
   console.log(`  cash-out            ${res.cashout.toFixed(2)}x    stake ${res.stake}`);
   console.log(`  rounds replayed     ${res.rounds}`);
-  console.log(`  bets placed         ${res.bets}`);
+  console.log(`  rounds placed         ${res.rounds}`);
   console.log(`  won / lost          ${res.wins} / ${res.losses}`);
   console.log(`  win rate            ${pct(res.winRate)}`);
   console.log(`  total staked        ${res.staked.toFixed(2)}`);
@@ -154,7 +154,7 @@ function main() {
     process.exit(1);
   }
 
-  const cashout = Number(arg('cashout', cfg.bet.autoCashout || 2));
+  const cashout = Number(arg('cashout', (cfg.order || cfg.round || {}).autoCashout || 2));
   const stake = Number(arg('stake', 1));
   const minHistory = Number(arg('minHistory', cfg.strategy.lookback || 6));
   const verbose = !!arg('verbose', false);
@@ -182,12 +182,12 @@ function main() {
     }
   } else {
     console.log('');
-    console.log('  strategy            bets   wins  win%    net       ROI     95% CI (ROI)');
+    console.log('  strategy            rounds   wins  win%    net       ROI     95% CI (ROI)');
     console.log('  ------------------  -----  ----  ------  --------  -------  --------------------');
     for (const r of results) {
       const ci = r.roiCI ? `${signed(r.roiCI[0] * 100, 1)}% .. ${signed(r.roiCI[1] * 100, 1)}%` : 'n/a';
       console.log(
-        `  ${r.strategy.padEnd(20)}${String(r.bets).padStart(5)}  ${String(r.wins).padStart(4)}  ${pct(r.winRate, 1).padStart(6)}  ${signed(r.net, 2).padStart(8)}  ${(signed(r.roi * 100, 2) + '%').padStart(7)}  ${ci}`
+        `  ${r.strategy.padEnd(20)}${String(r.rounds).padStart(5)}  ${String(r.wins).padStart(4)}  ${pct(r.winRate, 1).padStart(6)}  ${signed(r.net, 2).padStart(8)}  ${(signed(r.roi * 100, 2) + '%').padStart(7)}  ${ci}`
       );
     }
     console.log('');
@@ -204,7 +204,7 @@ function main() {
       cashout: r.cashout,
       stake: r.stake,
       rounds: r.rounds,
-      bets: r.bets,
+      rounds: r.rounds,
       wins: r.wins,
       losses: r.losses,
       winRate: +r.winRate.toFixed(6),

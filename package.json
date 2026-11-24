@@ -1,7 +1,7 @@
 {
   "name": "bc-game-crash-safebot",
   "version": "1.0.0",
-  "description": "Autonomous, provably-fair BC.Game Crash betting engine executing an ultra-conservative 1.02x compounding protocol, discrete 5-round sequence blocks, and symmetric dual-color guardrails.",
+  "description": "Autonomous, provably-fair BC.Game Crash execution engine executing an ultra-conservative 1.02x compounding protocol, real-time animation-frame lag detection, and emergency fail-safe aborts.",
   "main": "crash-agent/src/in-page-engine.js",
   "scripts": {
     "start": "node crash-agent/src/hourly.js",
@@ -10,7 +10,7 @@
   "keywords": [
     "bc-game",
     "crash",
-    "betting-bot",
+    "automation-bot",
     "automation",
     "playwright",
     "trading-engine"

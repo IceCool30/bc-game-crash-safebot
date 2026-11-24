@@ -14,14 +14,14 @@ An autonomous, client-side browser automation engine for BC.Game Crash executing
 * **The Trigger Pattern**:
   * **Round $N-1$**: Any **Red** multiplier (`1.00× – 1.99×`). Prior rounds do not matter.
   * **Round $N$**: Any **Moon** multiplier (`≥ 10.00×`).
-  * **Round $N+1$**: The bot automatically places the bet on the immediate round following the Moon crash.
+  * **Round $N+1$**: The bot automatically executes the order on the immediate round following the Moon crash.
 * **Capital Compounding**: 100% All-In of the liquid active balance detected on screen.
 * **Continuous Hunting**: Scans rounds 24/7 continuously (no hourly quota limit).
 * **Pre-Flight Lag & Motion Sentinel**:
   * Continuously measures browser frame rates via `requestAnimationFrame`.
-  * If a frame drop or animation stutter exceeds `200ms`, betting is immediately locked until the game runs smoothly for at least 3 seconds.
-* **Emergency Bet Abort**:
-  * If a bet is queued during the 6-second pre-round countdown and a lag spike occurs or the connection drops, the bot automatically clicks **`Cancel`** and zeroes the stake.
+  * If a frame drop or animation stutter exceeds `200ms`, execution is immediately locked until the game runs smoothly for at least 3 seconds.
+* **Emergency Order Abort**:
+  * If an order is queued during the 6-second pre-round countdown and a lag spike occurs or the connection drops, the bot automatically clicks **`Cancel`** and zeroes the stake.
 
 ---
 
@@ -98,10 +98,10 @@ When the bot is running, the on-screen dashboard provides live feedback:
 | HUD Section | What It Displays | What It Means |
 | :--- | :--- | :--- |
 | **Header** | `RED ➔ MOON PROTOCOL (1.02×)` | The active strategy and cashout target. |
-| **Capital & Pre-stage** | Current detected balance (`100%`) | The amount staged into the bet box. |
+| **Capital & Pre-stage** | Current detected balance (`100%`) | The amount staged into the capital input. |
 | **Last 2 Rounds** | `Round N-1: [Value]` & `Round N: [Value]` | Live tracking of recent multipliers. Highlights when `Red ➔ Moon` occurs. |
-| **Lag Sentinel** | `🟢 Smooth (60 FPS)` | Connection and graphics are smooth and safe for betting. |
-| **Lag Sentinel** | `⚠️ HOLD (LAG DETECTED)` | Frame jitter or lag detected. Bets are temporarily locked until 3 seconds of clean motion elapse. |
+| **Lag Sentinel** | `🟢 Smooth (60 FPS)` | Connection and graphics are smooth and safe for execution. |
+| **Lag Sentinel** | `⚠️ HOLD (LAG DETECTED)` | Frame jitter or lag detected. Orders are temporarily locked until 3 seconds of clean motion elapse. |
 | **Phase** | `HUNTING` / `QUEUED` / `IN FLIGHT` | Current operational state. |
 
 ---
@@ -111,7 +111,7 @@ When the bot is running, the on-screen dashboard provides live feedback:
 ### Can I test this with play/demo money?
 Yes. The script interacts with whatever currency mode is currently active on your BC.Game screen. Switch your wallet to demo/fun play mode before pasting the script if you wish to observe it risk-free.
 
-### Why did the bot cancel my bet during countdown?
+### Why did the bot cancel my queued order during countdown?
 The built-in **Lag & Motion Sentinel** protects your capital. If your internet stutters, your browser drops frames, or the site delays during the 6-second countdown, the bot triggers an **Emergency Abort** by clicking `Cancel` so you are not trapped in a desynchronized round.
 
 ### How do I stop or reset the bot?

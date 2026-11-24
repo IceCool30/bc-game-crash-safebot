@@ -122,7 +122,7 @@ function main() {
 
   console.log('\n=== WHAT THE HOUSE EDGE MEANS ===');
   console.log('For any fixed auto-cashout c, EV per 1 unit staked = 0.99 - 1 = -0.01 (-1%).');
-  console.log('Changing c changes variance, not expectation. Betting more rounds loses faster.');
+  console.log('Changing c changes variance, not expectation. Compounding more rounds loses faster.');
 }
 
 main();

@@ -1,5 +1,5 @@
 // Round collector: watches the BC.Game Crash page and appends every new round to JSONL.
-// Works without login (spectator mode) — no bets are placed.
+// Works without login (spectator mode) — no orders are placed.
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
@@ -22,7 +22,7 @@ function parseRounds(text) {
   }
   if (!out.length) return out;
   // The history strip is a short contiguous run ending at the newest round.
-  // Drop stray numbers elsewhere on the page (jackpots, win tickers, etc.).
+  // Drop stray numbers elsewhere on the page (tickers, counters, etc.).
   const maxRound = Math.max(...out.map((r) => r.round));
   return out
     .filter((r) => r.round >= maxRound - 50 && r.round <= maxRound + 5)

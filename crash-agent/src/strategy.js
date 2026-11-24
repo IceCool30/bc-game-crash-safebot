@@ -40,7 +40,7 @@ function lastReverse(history) {
 }
 
 function alwaysLong() {
-  return { signal: 'long', reason: 'baseline: always bet high' };
+  return { signal: 'long', reason: 'baseline: always enter high' };
 }
 
 const STRATEGIES = { 'streak-reversal': streakReversal, 'moving-average': movingAverage, 'last-follow': lastFollow, 'last-reverse': lastReverse, 'always-long': alwaysLong };

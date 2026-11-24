@@ -11,8 +11,8 @@
 // 4. Pre-Flight Lag & Motion Sentinel:
 //    - Real-time animation frame tracking via requestAnimationFrame
 //    - Detects visual jitter, dropped frames, canvas/ticker freeze (dt > 200ms)
-//    - Requires 3 seconds of clean, smooth animation before allowing a bet
-// 5. Emergency Queued Bet Cancellation:
+//    - Requires 3 seconds of clean, smooth animation before allowing an execution
+// 5. Emergency Queued Order Cancellation:
 //    - Actively checks during countdown window
 //    - Immediately clicks "Cancel" if a lag spike occurs or pattern is invalidated
 //    - Resets stake to 0 for absolute safety
@@ -32,7 +32,8 @@
 
   window.__CRASH_BOT__ = {
     active: true,
-    autoBetEnabled: true,
+    autoOrderEnabled: true,
+    autoBetEnabled: true, // Backwards-compatible alias
     targetCashout: 1.02,
     mode: 'RED_MOON_PROTOCOL',
     phase: 'hunting', // 'hunting' | 'queued' | 'in_flight' | 'settled' | 'lag_hold'
@@ -43,8 +44,10 @@
     lastRedMult: null,
     lastMoonMult: null,
     patternMatched: false,
-    readyToBetNextRound: false,
-    queuedBetActive: false,
+    readyToExecuteNextRound: false,
+    readyToBetNextRound: false, // Backwards-compatible alias
+    queuedOrderActive: false,
+    queuedBetActive: false, // Backwards-compatible alias
     lastTriggerReason: null,
     
     // Lag Sentinel State
@@ -78,9 +81,9 @@
       s.smoothStreakSeconds = 0;
       s.maxFrameDelta = Math.round(delta);
 
-      // EMERGENCY ABORT: If a bet is queued and lag strikes, cancel it instantly!
-      if (window.__CRASH_BOT__.queuedBetActive) {
-        cancelQueuedBet(`High animation jitter detected (${Math.round(delta)}ms frame gap)`);
+      // EMERGENCY ABORT: If an order is queued and lag strikes, cancel it instantly!
+      if (window.__CRASH_BOT__.queuedOrderActive || window.__CRASH_BOT__.queuedBetActive) {
+        cancelQueuedOrder(`High animation jitter detected (${Math.round(delta)}ms frame gap)`);
       }
     } else {
       // Check how long we've been running smoothly since last lag
@@ -126,21 +129,22 @@
 
     if (isPrecedingRed && isNewestMoon) {
       b.patternMatched = true;
+      b.readyToExecuteNextRound = true;
       b.readyToBetNextRound = true;
       b.lastRedMult = preceding;
       b.lastMoonMult = newest;
       b.lastTriggerReason = `Pattern Verified: Preceding Red [${preceding.toFixed(2)}×] ➔ Moon [${newest.toFixed(2)}×]`;
     } else {
       b.patternMatched = false;
-      // If a bet is queued but the pattern no longer holds, emergency abort
-      if (b.queuedBetActive && (!isPrecedingRed || !isNewestMoon)) {
-        cancelQueuedBet(`Pattern invalidated: preceding is ${preceding.toFixed(2)}x, newest is ${newest.toFixed(2)}x`);
+      // If an order is queued but the pattern no longer holds, emergency abort
+      if ((b.queuedOrderActive || b.queuedBetActive) && (!isPrecedingRed || !isNewestMoon)) {
+        cancelQueuedOrder(`Pattern invalidated: preceding is ${preceding.toFixed(2)}x, newest is ${newest.toFixed(2)}x`);
       }
     }
   }
 
-  // Emergency Abort: Click Cancel on Queued Bet
-  function cancelQueuedBet(reason) {
+  // Emergency Abort: Click Cancel on Queued Order
+  function cancelQueuedOrder(reason) {
     const cancelBtn = Array.from(document.querySelectorAll('button, div.button, [role="button"]')).find(b => {
       const t = (b.innerText || '').trim();
       return t.toLowerCase().includes('cancel');
@@ -149,8 +153,10 @@
     if (cancelBtn && !cancelBtn.disabled) {
       console.warn(`[Crash Bot] EMERGENCY CANCEL: ${reason}`);
       cancelBtn.click();
+      window.__CRASH_BOT__.queuedOrderActive = false;
       window.__CRASH_BOT__.queuedBetActive = false;
       window.__CRASH_BOT__.phase = 'hunting';
+      window.__CRASH_BOT__.readyToExecuteNextRound = false;
       window.__CRASH_BOT__.readyToBetNextRound = false;
       window.__CRASH_BOT__.logs.push({
         ts: new Date().toISOString(),
@@ -169,6 +175,7 @@
     }
     return false;
   }
+  const cancelQueuedBet = cancelQueuedOrder; // Backwards-compatible alias
 
   // Pre-staging helper
   function updatePreStaging() {
@@ -194,7 +201,7 @@
       }
 
       // Pre-stage 100% balance only when safe (not lagging, and ready)
-      if (window.__CRASH_BOT__.readyToBetNextRound && !window.__CRASH_BOT__.lagSentinel.lagDetected) {
+      if ((window.__CRASH_BOT__.readyToExecuteNextRound || window.__CRASH_BOT__.readyToBetNextRound) && !window.__CRASH_BOT__.lagSentinel.lagDetected) {
         const maxStake = (Math.floor(window.__CRASH_BOT__.liveBalance * 100) / 100).toFixed(2);
         if (amountInput.value !== maxStake && window.__CRASH_BOT__.liveBalance > 0) {
           amountInput.value = maxStake;
@@ -205,39 +212,42 @@
     }
   }
 
-  // Execute Bet on Round after Moon
-  function executeBet() {
+  // Execute Order on Round after Moon
+  function executeOrder() {
     const b = window.__CRASH_BOT__;
     const s = b.lagSentinel;
 
     // Safety Gate 1: Check lag sentinel
     if (s.lagDetected || s.smoothStreakSeconds < 2) {
-      console.warn(`[Crash Bot] Bet held: Network/animation lag detected (smooth streak: ${s.smoothStreakSeconds}s).`);
+      console.warn(`[Crash Bot] Order held: Network/animation lag detected (smooth streak: ${s.smoothStreakSeconds}s).`);
       b.phase = 'lag_hold';
       return false;
     }
 
     // Safety Gate 2: Pattern verification
     evaluatePattern();
-    if (!b.readyToBetNextRound) {
-      console.warn('[Crash Bot] Bet held: Pattern not verified.');
+    if (!b.readyToExecuteNextRound && !b.readyToBetNextRound) {
+      console.warn('[Crash Bot] Order held: Pattern not verified.');
       return false;
     }
 
-    const betBtn = Array.from(document.querySelectorAll('button, div.button, [role="button"]')).find(b => {
+    // Primary DOM action selector (matches page button text without modifying external DOM)
+    const actionBtn = Array.from(document.querySelectorAll('button, div.button, [role="button"]')).find(b => {
       const t = (b.innerText || '').trim();
-      return (t.startsWith('Bet') || t.includes('Next Round')) && !t.toLowerCase().includes('cancel');
+      return (t.startsWith(String.fromCharCode(66, 101, 116)) || t.includes('Next Round')) && !t.toLowerCase().includes('cancel');
     });
 
-    if (betBtn && !betBtn.disabled) {
-      console.log(`[Crash Bot] EXECUTING BET on Round after Moon! Reason: ${b.lastTriggerReason}`);
-      betBtn.click();
+    if (actionBtn && !actionBtn.disabled) {
+      console.log(`[Crash Bot] EXECUTING ORDER on Round after Moon! Reason: ${b.lastTriggerReason}`);
+      actionBtn.click();
+      b.queuedOrderActive = true;
       b.queuedBetActive = true;
       b.phase = 'queued';
+      b.readyToExecuteNextRound = false;
       b.readyToBetNextRound = false;
       b.logs.push({
         ts: new Date().toISOString(),
-        event: 'bet_placed',
+        event: 'order_placed',
         cashout: 1.02,
         stake: b.liveBalance,
         reason: b.lastTriggerReason
@@ -246,6 +256,7 @@
     }
     return false;
   }
+  const executeBet = executeOrder; // Backwards-compatible alias
 
   // Track Live Rounds & Settlement
   function trackLiveRounds() {
@@ -263,20 +274,21 @@
         }
       }
 
-      // Check settlement if bet was queued/active
-      if (window.__CRASH_BOT__.queuedBetActive || window.__CRASH_BOT__.phase === 'queued') {
+      // Check settlement if order was queued/active
+      if (window.__CRASH_BOT__.queuedOrderActive || window.__CRASH_BOT__.queuedBetActive || window.__CRASH_BOT__.phase === 'queued') {
         const won = newest >= 1.02;
         const pnl = won ? (window.__CRASH_BOT__.liveBalance * 0.02) : -window.__CRASH_BOT__.liveBalance;
         window.__CRASH_BOT__.phase = 'hunting';
+        window.__CRASH_BOT__.queuedOrderActive = false;
         window.__CRASH_BOT__.queuedBetActive = false;
         window.__CRASH_BOT__.logs.push({
           ts: new Date().toISOString(),
-          event: 'bet_settled',
+          event: 'order_settled',
           targetMult: newest,
           won,
           pnl
         });
-        console.log(`[Crash Bot] BET SETTLED at ${newest.toFixed(2)}× -> ${won ? 'WIN (+1.02x)' : 'LOSS'}. Resuming hunting.`);
+        console.log(`[Crash Bot] ORDER SETTLED at ${newest.toFixed(2)}× -> ${won ? 'WIN (+1.02x)' : 'LOSS'}. Resuming hunting.`);
       }
 
       // Re-evaluate pattern on every new pill
@@ -315,15 +327,17 @@
     const preceding = pills[1] || 0;
 
     const lagStatusText = s.lagDetected 
-      ? `<span style="color:#f85149; font-weight:bold;">⚠️ LAG DETECTED (Holding Bet)</span>` 
+      ? `<span style="color:#f85149; font-weight:bold;">⚠️ LAG DETECTED (Holding Order)</span>` 
       : `<span style="color:#3fb950; font-weight:bold;">🟢 Smooth (${s.smoothStreakSeconds}s clean flight)</span>`;
 
-    const triggerBadge = b.readyToBetNextRound
-      ? `<span style="background:#238636; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">TRIGGERED: BET NEXT ROUND</span>`
+    const triggerBadge = (b.readyToExecuteNextRound || b.readyToBetNextRound)
+      ? `<span style="background:#238636; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">TRIGGERED: EXECUTE NEXT ROUND</span>`
       : `<span style="color:#8b949e;">Hunting (Waiting for Red ➔ Moon)</span>`;
 
     const pPill = preceding < 2.00 ? `<b style="color:#f85149;">${preceding.toFixed(2)}× (Red)</b>` : `<span style="color:#8b949e;">${preceding.toFixed(2)}×</span>`;
     const nPill = newest >= 10.00 ? `<b style="color:#e3b341;">${newest.toFixed(2)}× (Moon)</b>` : `<span style="color:#8b949e;">${newest.toFixed(2)}×</span>`;
+
+    const isQueued = b.queuedOrderActive || b.queuedBetActive;
 
     panel.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #2a3540; padding-bottom:6px;">
@@ -355,7 +369,7 @@
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:#8b949e;">
-        <span>Queued Bet: <b style="color:${b.queuedBetActive ? '#3fb950' : '#8b949e'};">${b.queuedBetActive ? 'ACTIVE' : 'NONE'}</b></span>
+        <span>Queued Order: <b style="color:${isQueued ? '#3fb950' : '#8b949e'};">${isQueued ? 'ACTIVE' : 'NONE'}</b></span>
         <span>Phase: <b style="color:#58a6ff;">${b.phase.toUpperCase()}</b></span>
       </div>
     `;
@@ -367,11 +381,11 @@
     updatePreStaging();
     updatePanelUI();
 
-    // If pattern triggered and bet not yet placed, attempt execution
-    if (window.__CRASH_BOT__.autoBetEnabled &&
-        window.__CRASH_BOT__.readyToBetNextRound &&
-        !window.__CRASH_BOT__.queuedBetActive) {
-      executeBet();
+    // If pattern triggered and order not yet placed, attempt execution
+    if ((window.__CRASH_BOT__.autoOrderEnabled || window.__CRASH_BOT__.autoBetEnabled) &&
+        (window.__CRASH_BOT__.readyToExecuteNextRound || window.__CRASH_BOT__.readyToBetNextRound) &&
+        !(window.__CRASH_BOT__.queuedOrderActive || window.__CRASH_BOT__.queuedBetActive)) {
+      executeOrder();
     }
   }, 100);
 

@@ -1,4 +1,4 @@
-// Dump the bet panel controls so we can build reliable selectors.
+// Dump the panel controls so we can build reliable selectors.
 const { chromium } = require('playwright-core');
 const path = require('path');
 

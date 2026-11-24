@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Waits for the first settled bet in data/hourly.jsonl, prints it, and exits.
+// Waits for the first settled round in data/hourly.jsonl, prints it, and exits.
 // Notification aid only - it never touches the bot or the site.
 const fs = require('fs');
 const path = require('path');

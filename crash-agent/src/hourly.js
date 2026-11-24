@@ -3,10 +3,10 @@
 //
 //   stake       : 100% of the paper balance (or configured UI stake)
 //   cash-out    : 1.02x
-//   cadence     : 1 bet per hour
+//   cadence     : 1 order per hour
 //   timezone    : West African Time (UTC+1), no DST
 //   cycle       : aligned to the top of the hour, exactly HH:00:00 WAT
-//   observe     : HH:00 -> HH:10, settled rounds only, no betting
+//   observe     : HH:00 -> HH:10, settled rounds only, no execution
 //   decide      : HH:10 -> HH:15. Decision is evaluated and logged.
 //                 When safe (decision === 'BET'), the bot sets the cashout (1.02x),
 //                 optionally fills stake, and CLICKS THE BET BUTTON on the live page.
@@ -202,7 +202,7 @@ function newCycle() {
   console.log('');
   console.log(`========================================================================`);
   console.log(`--- WEEK ${weekIndex + 1} | HOUR ${cycleIndex + 1}/${MAX_CYCLES} | ${fmtWAT(cycleStart)} WAT ---`);
-  console.log(`    Active tracking from millisecond 0: ready to bet on 6th round upon Option A trigger.`);
+  console.log(`    Active tracking from millisecond 0: ready to execute on 6th round upon Option A trigger.`);
   console.log(`========================================================================`);
 }
 
@@ -254,7 +254,7 @@ async function decideAndPlace() {
         const betBtn = page.locator('button:has-text("Bet"), div.button:has-text("Bet")').first();
         if (await betBtn.count() > 0 && (await betBtn.isVisible())) {
           const btnText = (await betBtn.innerText()).replace(/\n/g, ' ');
-          console.log(`[${fmtWAT(Date.now())}] ACTUATOR Pressing Bet button (current label: "${btnText}")...`);
+          console.log(`[${fmtWAT(Date.now())}] ACTUATOR Pressing action button (current label: "${btnText}")...`);
           await betBtn.click();
           buttonClicked = true;
 
@@ -268,17 +268,17 @@ async function decideAndPlace() {
           if (dialogInfo) {
             console.log(`[${fmtWAT(Date.now())}] NOTICE   Dialog detected after click: "${dialogInfo}"`);
           }
-          console.log(`[${fmtWAT(Date.now())}] ACTUATOR Bet button clicked successfully.`);
+          console.log(`[${fmtWAT(Date.now())}] ACTUATOR action button clicked successfully.`);
         } else {
           clickError = 'Bet button not found or not visible';
           console.log(`[${fmtWAT(Date.now())}] WARNING  ${clickError}`);
         }
       } catch (err) {
         clickError = err.message;
-        console.error(`[${fmtWAT(Date.now())}] ERROR    Failed to click bet button: ${err.message}`);
+        console.error(`[${fmtWAT(Date.now())}] ERROR    Failed to click action button: ${err.message}`);
       }
     } else if (DRY_RUN) {
-      console.log(`[${fmtWAT(Date.now())}] DRY-RUN  Simulated click on Bet button at 1.02x`);
+      console.log(`[${fmtWAT(Date.now())}] DRY-RUN  Simulated click on action button at 1.02x`);
       buttonClicked = true;
     }
 
@@ -441,7 +441,7 @@ async function tick() {
         rule, target: null, bet: null,
         ledgers: { allin: L.allin, control: L.control, flat: L.flat, flatBets: L.flatBet },
       });
-      console.log(`[${fmtWAT(now)}] MISSED   Hour closed with the bet unresolved`);
+      console.log(`[${fmtWAT(now)}] MISSED   Hour closed with the order unresolved`);
     }
     if (cycleIndex + 1 >= MAX_CYCLES) {
       summary();
@@ -530,13 +530,13 @@ function summary() {
 (async () => {
   console.log('');
   console.log('========================================================================');
-  console.log('  HOURLY BOT - PROTOCOL H1.02 (LIVE BET-BUTTON WIRED)');
+  console.log('  HOURLY BOT - PROTOCOL H1.02 (LIVE ORDER-BUTTON WIRED)');
   console.log('========================================================================');
   console.log(`  Timezone         West African Time (UTC+1)`);
   console.log(`  Cycle            Hourly, HH:00:00 WAT`);
   console.log(`  Observation      HH:00 -> HH:${pad(OBSERVE_MIN)} (window: ${OBSERVE_MIN} min)`);
   console.log(`  Cash-Out Target  ${CASHOUT.toFixed(2)}x`);
-  console.log(`  Action on Safe   FILL CASHOUT (${CASHOUT.toFixed(2)}x) & CLICK BET BUTTON`);
+  console.log(`  Action on Safe   FILL CASHOUT (${CASHOUT.toFixed(2)}x) & CLICK ACTION BUTTON`);
   console.log(`  Mode             ${HEADED ? 'Headed (visible Chrome)' : 'Headless (background Chrome)'}`);
   console.log('------------------------------------------------------------------------');
 

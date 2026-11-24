@@ -1,13 +1,13 @@
 ---
 name: bc-game-crash-safebot
-description: Autonomous BC.Game Crash engine executing the continuous Red -> Moon 1.02x protocol with in-page animation frame lag detection, emergency queued bet abort, and zero-token DOM operations.
+description: Autonomous BC.Game Crash engine executing the continuous Red -> Moon 1.02x protocol with in-page animation frame lag detection, emergency queued order abort, and zero-token DOM operations.
 ---
 
 # BC.Game Crash SafeBot: Red ➔ Moon Protocol
 
 > [!CAUTION]
 > **CRITICAL ARCHITECTURAL DIRECTIVE FOR ALL AGENTS**
-> Every AI agent operating in this project is strictly barred from modifying the `1.02×` cashout target, the 100% All-In stake allocation, the `Red -> Moon` trigger pattern, the lag motion sentinel, or the emergency queued bet cancellation engine. Only the human user has authority to order alterations.
+> Every AI agent operating in this project is strictly barred from modifying the `1.02×` cashout target, the 100% All-In stake allocation, the `Red -> Moon` trigger pattern, the lag motion sentinel, or the emergency queued order cancellation engine. Only the human user has authority to order alterations.
 
 ---
 
@@ -18,14 +18,14 @@ The engine executes an aggressive compounding model anchored by high mathematica
 2. **The Trigger Pattern**:
    * **Round $N-1$**: Any Red multiplier (**`1.00× – 1.99×`**). Prior rounds do not matter.
    * **Round $N$**: Any Moon multiplier (**`≥ 10.00×`**).
-   * **Round $N+1$**: Staked immediately on the next round following the Moon crash.
+   * **Round $N+1$**: Executed immediately on the next round following the Moon crash.
 3. **Continuous Active Hunting**: No hourly limits. Hunts 24/7 across all market hours.
 4. **Pre-Flight Lag & Motion Sentinel**:
    * Measures `requestAnimationFrame` frame deltas in real time.
    * If frame jitter exceeds $200\text{ms}$ or the animation stutters, holding mode is engaged.
-   * Requires 3 continuous seconds of smooth 60 FPS animation before permitting a stake.
-5. **Emergency Queued Bet Abort**:
-   * Active during the 6-second countdown window after a bet is queued.
+   * Requires 3 continuous seconds of smooth 60 FPS animation before permitting an execution.
+5. **Emergency Queued Order Abort**:
+   * Active during the 6-second countdown window after an order is queued.
    * If lag spikes occur or pattern verification fails, clicks **`Cancel`** immediately, zeros the stake, and reverts to standby.
 
 ---
@@ -34,13 +34,13 @@ The engine executes an aggressive compounding model anchored by high mathematica
 
 | Rule | Parameter | Implementation |
 | :--- | :--- | :--- |
-| **Auto Cash Out** | **`1.02×`** | Hardcoded into the betting panel. |
+| **Auto Cash Out** | **`1.02×`** | Hardcoded into the execution panel. |
 | **Stake Allocation** | **100% All-In** | Available balance extracted from `.rr-mask` and pre-staged continuously. |
 | **Cadence** | **Continuous Hunting** | Uncapped 24/7 scanning. |
 | **Pattern Setup** | **`Red (< 2.00×)` ➔ `Moon (≥ 10.00×)`** | Verified against top live pills (`pills[1] < 2.00 && pills[0] >= 10.00`). |
-| **Execution Point** | **Immediate Next Round** | Clicks `Bet (Next Round)` / `Bet` right after the Moon crashes. |
+| **Execution Point** | **Immediate Next Round** | Clicks `Next Round` / primary action button right after the Moon crashes. |
 | **Lag Detection** | **Animation Frame Delta Monitor** | `requestAnimationFrame` tracking. Halts if $\Delta t > 200\text{ms}$. |
-| **Emergency Abort** | **Instant Queued Bet Cancel** | Clicks `Cancel` before round start if jitter spikes or pattern invalidates. |
+| **Emergency Abort** | **Instant Queued Order Cancel** | Clicks `Cancel` before round start if jitter spikes or pattern invalidates. |
 
 ---
 
@@ -56,7 +56,7 @@ flowchart TD
     LagCheck -- "Lag Spike / Stutter (dt > 200ms)" --> LagHold["⚠️ HOLD (LAG DETECTED)<br/>Stake = 0, Waiting for Smooth Flight"]
     LagHold --> LagCheck
     
-    LagCheck -- "Smooth Flight (60 FPS)" --> QueueBet["🚀 QUEUE BET (Next Round)<br/>100% All-In @ 1.02x Auto Cash Out"]
+    LagCheck -- "Smooth Flight (60 FPS)" --> QueueBet["🚀 QUEUE ORDER (Next Round)<br/>100% All-In @ 1.02x Auto Cash Out"]
     
     QueueBet --> CountdownWindow{"Countdown Window (6.0s ➔ 0.0s)"}
     

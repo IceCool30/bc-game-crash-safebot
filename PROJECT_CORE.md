@@ -9,16 +9,16 @@
 
 ## 1. Executive Summary & Purpose
 
-The BC.Game Crash SafeBot is an autonomous, zero-token in-browser engine designed to capture high-probability compounding growth while guarding against the two most lethal vulnerabilities in Crash games:
-1. **Lag & Desynchronization Traps**: Placing bets during browser frame drops, packet loss, or canvas freezes where cashout requests fail to register.
+The BC.Game Crash SafeBot is an autonomous, zero-token in-browser engine designed to capture high-probability compounding growth while guarding against the two most lethal vulnerabilities in Crash multiplier environments:
+1. **Lag & Desynchronization Traps**: Executing orders during browser frame drops, packet loss, or canvas freezes where cashout requests fail to register.
 2. **Timing & Stagnation Traps**: Staking during unverified market phases without clear momentum signals.
 
 The engine executes the **Red ➔ Moon Protocol**:
 * **The Mathematical Edge**: At **`1.02×`**, the baseline mathematical win probability of any individual round is **`97.06%`** ($99 / 102$).
 * **The Momentum Signal**: By entering only on the immediate round after a **Moon ($\ge 10.00\times$)** that was preceded by a **Red ($1.00\times - 1.99\times$)**, the engine targets momentum transitions.
 * **Continuous Active Hunting**: Uncapped hourly limits allow the bot to actively hunt 24/7 whenever the trigger pattern presents itself.
-* **Pre-Flight Lag & Motion Sentinel**: Uses real-time `requestAnimationFrame` delta tracking to hold bets whenever the Crash curve/countdown stutters.
-* **Emergency Abort**: Automatically clicks "Cancel" on a queued bet if lag strikes or pattern invalidates before the round starts.
+* **Pre-Flight Lag & Motion Sentinel**: Uses real-time `requestAnimationFrame` delta tracking to hold execution whenever the Crash curve/countdown stutters.
+* **Emergency Abort**: Automatically clicks "Cancel" on a queued order if lag strikes or pattern invalidates before the round starts.
 
 ---
 
@@ -27,12 +27,12 @@ The engine executes the **Red ➔ Moon Protocol**:
 | Rule | Specification | Guardrail Enforcement |
 | :--- | :--- | :--- |
 | **Auto Cash Out** | **`1.02×`** | Hardcoded. Never increased for "extra profit" or reduced below 1.02x. |
-| **Stake Allocation** | **100% All-In Compounding** | Entire liquid balance is pre-staged continuously into the betting input. |
+| **Stake Allocation** | **100% All-In Compounding** | Entire liquid balance is pre-staged continuously into the capital input. |
 | **Cadence Limit** | **Continuous Active Hunting** | No hourly restriction. Hunts 24/7 across all market cycles. |
 | **Pattern Trigger** | **`Red` ➔ `Moon`** | **Round $N-1$**: Red ($1.00\times - 1.99\times$).<br/>**Round $N$**: Moon ($\ge 10.00\times$). Prior rounds do not matter. |
-| **Execution Point** | **Immediate Next Round (Round $N+1$)** | Bet placed for the round immediately following the Moon crash. |
-| **Lag & Motion Sentinel** | **Real-Time Frame Rate Monitor** | Tracks frame deltas via `requestAnimationFrame`. If $\Delta t > 200\text{ms}$, flags lag and holds bets. Requires 3s clean flight to clear. |
-| **Emergency Abort** | **Queued Bet Cancellation** | If a bet is queued and lag strikes or pattern verification fails, clicks **`Cancel`** immediately before the round launches. |
+| **Execution Point** | **Immediate Next Round (Round $N+1$)** | Order executed for the round immediately following the Moon crash. |
+| **Lag & Motion Sentinel** | **Real-Time Frame Rate Monitor** | Tracks frame deltas via `requestAnimationFrame`. If $\Delta t > 200\text{ms}$, flags lag and holds orders. Requires 3s clean flight to clear. |
+| **Emergency Abort** | **Queued Order Cancellation** | If an order is queued and lag strikes or pattern verification fails, clicks **`Cancel`** immediately before the round launches. |
 
 ---
 
@@ -43,7 +43,7 @@ bc-game-crash-safebot/
 ├── crash-agent/
 │   ├── config.json              # Platform & logging configuration
 │   ├── data/
-│   │   └── hourly.jsonl         # Compounding audit ledger & bet records
+│   │   └── hourly.jsonl         # Compounding audit ledger & execution records
 │   └── src/
 │       └── in-page-engine.js    # Master in-browser DOM automation engine
 ├── skills/
@@ -67,7 +67,7 @@ flowchart TD
     LagCheck -- "Lag Spike / Stutter (dt > 200ms)" --> LagHold["⚠️ HOLD (LAG DETECTED)<br/>Stake = 0, Waiting for Smooth Flight"]
     LagHold --> LagCheck
     
-    LagCheck -- "Smooth Flight (60 FPS)" --> QueueBet["🚀 QUEUE BET (Next Round)<br/>100% All-In @ 1.02x Auto Cash Out"]
+    LagCheck -- "Smooth Flight (60 FPS)" --> QueueBet["🚀 QUEUE ORDER (Next Round)<br/>100% All-In @ 1.02x Auto Cash Out"]
     
     QueueBet --> CountdownWindow{"Countdown Window (6.0s ➔ 0.0s)"}
     

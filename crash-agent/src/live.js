@@ -25,7 +25,7 @@ const arg = (n, d) => {
 
 const ALLIN = !!arg('allin', false);
 const strategyName = arg('strategy', null);
-const cashout = Number(arg('cashout', ALLIN ? 1.01 : cfg.bet.autoCashout || 2));
+const cashout = Number(arg('cashout', ALLIN ? 1.01 : (cfg.order || cfg.bet || {}).autoCashout || 2));
 const BETS_PER_HOUR = Number(arg('betsPerHour', 2));
 const BET_INTERVAL = 3600000 / BETS_PER_HOUR;
 let stake = Number(arg('stake', 1));

@@ -16,7 +16,7 @@ if (rounds.length < 20) {
   process.exit(1);
 }
 
-const CASHOUT = cfg.bet.autoCashout || 2;
+const CASHOUT = (cfg.order || cfg.bet || {}).autoCashout || 2;
 const STAKE = 1;
 const LOOKBACK = cfg.strategy.lookback || 6;
 

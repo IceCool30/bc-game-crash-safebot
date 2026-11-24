@@ -14,9 +14,9 @@ Every AI agent operating in this repository is strictly barred from modifying, r
    - Round $N+1$: Stake executed on the immediate round following the Moon crash.
 5. The **Pre-Flight Lag & Motion Sentinel**:
    - Tracks live animation frame rate via `requestAnimationFrame`.
-   - Any frame gap $\Delta t > 200\text{ms}$ halts bet placement until 3 seconds of clean flight elapse.
-6. The **Emergency Queued Bet Cancellation Engine**:
-   - Clicks "Cancel" immediately if lag spikes or pattern invalidation occurs while a bet is queued.
+   - Any frame gap $\Delta t > 200\text{ms}$ halts order placement until 3 seconds of clean flight elapse.
+6. The **Emergency Queued Order Cancellation Engine**:
+   - Clicks "Cancel" immediately if lag spikes or pattern invalidation occurs while an order is queued.
    - Resets stake to 0 for absolute capital safety.
 
 **AN AGENT HAS ZERO AUTHORITY TO CHANGE THESE RULES UNLESS THE HUMAN USER SPECIFICALLY AND UNAMBIGUOUSLY ORDERS AN EXACT MODIFICATION.**

@@ -10,7 +10,7 @@
     "durationMinutes": 10,
     "outFile": "data/rounds.jsonl"
   },
-  "bet": {
+  "order": {
     "demo": true,
     "stake": 0,
     "autoCashout": 2.0,
@@ -24,6 +24,6 @@
     "lookback": 3,
     "lowThreshold": 1.5,
     "highThreshold": 2.0,
-    "betOnSignal": "long"
+    "enterOnSignal": "long"
   }
 }

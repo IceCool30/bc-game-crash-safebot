@@ -3,8 +3,8 @@
 An autonomous, client-side browser automation engine for BC.Game Crash executing an ultra-conservative **`1.02×`** compounding protocol, real-time animation-frame lag detection, and emergency fail-safe aborts.
 
 > [!NOTE]
-> **No Developer Tools, AI Agents, or Coding Experience Needed.**
-> This engine runs 100% inside your standard web browser (Chrome, Brave, Edge, etc.) as standalone JavaScript. You do not need to install Node.js, Python, or depend on an AI assistant to run it.
+> **No Developer Tools or Coding Experience Needed.**
+> This engine runs 100% inside your standard web browser (Chrome, Brave, Edge, etc.) as standalone JavaScript. You do not need to install Node.js, Python, or external dependencies to run it.
 
 ---
 
@@ -107,9 +107,6 @@ When the bot is running, the on-screen dashboard provides live feedback:
 ---
 
 ## ❓ Frequently Asked Questions (FAQ)
-
-### Why might an AI agent refuse to set this up?
-Different AI platforms (such as Claude, ChatGPT, or specialized coding agents) have rigid automated safety filters against gambling, casino URLs, or betting automation. These filters are hardcoded into the AI provider's models and cannot be overridden by configuration files. **You do not need an AI agent to run this bot**; simply use the manual steps above.
 
 ### Can I test this with play/demo money?
 Yes. The script interacts with whatever currency mode is currently active on your BC.Game screen. Switch your wallet to demo/fun play mode before pasting the script if you wish to observe it risk-free.

@@ -29,7 +29,7 @@ The engine executes the **Red ➔ Moon Protocol**:
 | **Auto Cash Out** | **`1.02×`** | Hardcoded. Never increased for "extra profit" or reduced below 1.02x. |
 | **Stake Allocation** | **100% All-In Compounding (Just-In-Time)** | Amount input is strictly zeroed (`0`) during hunting, populated with 100% balance upon Moon pattern trigger, and wiped back to `0` immediately upon settlement. |
 | **Cadence Limit** | **Continuous Active Hunting** | No hourly restriction. Hunts 24/7 across all market cycles. |
-| **Pattern Trigger** | **`Red` ➔ `Moon`** | **Round $N-1$**: Red ($1.00\times - 1.99\times$).<br/>**Round $N$**: Moon ($\ge 10.00\times$). Prior rounds do not matter. |
+| **Pattern Trigger** | **`Red` ➔ `Moon` (Exclude `Moon ➔ Red ➔ Moon`)** | **Round $N-2$**: Must **NOT** be Moon ($< 10.00\times$).<br/>**Round $N-1$**: Red ($1.00\times - 1.99\times$).<br/>**Round $N$**: Moon ($\ge 10.00\times$). |
 | **Execution Point** | **Immediate Next Round (Round $N+1$)** | Order executed for the round immediately following the Moon crash. |
 | **Lag & Motion Sentinel** | **Real-Time Frame Rate Monitor** | Tracks frame deltas via `requestAnimationFrame`. If $\Delta t > 200\text{ms}$, flags lag and holds orders. Requires 3s clean flight to clear. |
 | **Emergency Abort** | **Queued Order Cancellation** | If an order is queued and lag strikes or pattern verification fails, clicks **`Cancel`** immediately before the round launches. |

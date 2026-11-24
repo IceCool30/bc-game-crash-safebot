@@ -1,9 +1,10 @@
 // BC.Game Crash Autonomous Engine: Red -> Moon Protocol
 // Implements:
 // 1. Trigger Pattern:
+//    - Round N-2: Must NOT be Moon (< 10.00x)
 //    - Round N-1: Red (1.00x - 1.99x)
 //    - Round N: Moon (>= 10.00x)
-//    - Round N+1: Immediate execution on next round after Moon crashes!
+//    - Round N+1: Immediate execution on next round after Moon crashes (blocked if Moon -> Red -> Moon)!
 // 2. Execution Parameters:
 //    - Auto Cash Out: Hardcoded 1.02x
 //    - Stake: 100% All-In available balance (pre-staged continuously)
@@ -113,32 +114,39 @@
     return positioned.map(p => p.mult);
   }
 
-  // Evaluate the Red -> Moon pattern from recent pills
+  // Evaluate the Red -> Moon pattern from recent pills (3-round check: block Moon -> Red -> Moon)
   function evaluatePattern() {
     const pills = getLivePills();
-    if (pills.length < 2) return;
+    if (pills.length < 3) return;
 
-    const newest = pills[0]; // Most recent round
-    const preceding = pills[1]; // Round immediately before newest
+    const newest = pills[0]; // Round N (most recent round)
+    const preceding = pills[1]; // Round N-1
+    const beforePreceding = pills[2]; // Round N-2
 
     const b = window.__CRASH_BOT__;
 
-    // Rule: Round before Moon must be Red (< 2.00x), and current/newest round must be Moon (>= 10.00x)
+    // Rule: N-2 must NOT be Moon (< 10.00x), N-1 must be Red (< 2.00x), and N must be Moon (>= 10.00x)
+    const isBeforePrecedingMoon = beforePreceding >= 10.00;
     const isPrecedingRed = preceding < 2.00;
     const isNewestMoon = newest >= 10.00;
 
-    if (isPrecedingRed && isNewestMoon) {
+    if (!isBeforePrecedingMoon && isPrecedingRed && isNewestMoon) {
       b.patternMatched = true;
       b.readyToExecuteNextRound = true;
       b.readyToBetNextRound = true;
       b.lastRedMult = preceding;
       b.lastMoonMult = newest;
-      b.lastTriggerReason = `Pattern Verified: Preceding Red [${preceding.toFixed(2)}×] ➔ Moon [${newest.toFixed(2)}×]`;
+      b.lastTriggerReason = `Pattern Verified: [${beforePreceding.toFixed(2)}×] ➔ Red [${preceding.toFixed(2)}×] ➔ Moon [${newest.toFixed(2)}×]`;
     } else {
       b.patternMatched = false;
+      b.readyToExecuteNextRound = false;
+      b.readyToBetNextRound = false;
+      if (isBeforePrecedingMoon && isPrecedingRed && isNewestMoon) {
+        b.lastTriggerReason = `Pattern Blocked (Moon ➔ Red ➔ Moon): [${beforePreceding.toFixed(2)}×] ➔ [${preceding.toFixed(2)}×] ➔ [${newest.toFixed(2)}×]`;
+      }
       // If an order is queued but the pattern no longer holds, emergency abort
-      if ((b.queuedOrderActive || b.queuedBetActive) && (!isPrecedingRed || !isNewestMoon)) {
-        cancelQueuedOrder(`Pattern invalidated: preceding is ${preceding.toFixed(2)}x, newest is ${newest.toFixed(2)}x`);
+      if (b.queuedOrderActive || b.queuedBetActive) {
+        cancelQueuedOrder(`Pattern invalidated: N-2=${beforePreceding.toFixed(2)}x, N-1=${preceding.toFixed(2)}x, N=${newest.toFixed(2)}x`);
       }
     }
   }
@@ -343,15 +351,21 @@
     const pills = getLivePills();
     const newest = pills[0] || 0;
     const preceding = pills[1] || 0;
+    const beforePreceding = pills[2] || 0;
 
     const lagStatusText = s.lagDetected 
       ? `<span style="color:#f85149; font-weight:bold;">⚠️ LAG DETECTED (Holding Order)</span>` 
       : `<span style="color:#3fb950; font-weight:bold;">🟢 Smooth (${s.smoothStreakSeconds}s clean flight)</span>`;
 
+    const isBlockedMoonRedMoon = beforePreceding >= 10.00 && preceding < 2.00 && newest >= 10.00;
+
     const triggerBadge = (b.readyToExecuteNextRound || b.readyToBetNextRound)
       ? `<span style="background:#238636; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">TRIGGERED: EXECUTE NEXT ROUND</span>`
-      : `<span style="color:#8b949e;">Hunting (Waiting for Red ➔ Moon)</span>`;
+      : isBlockedMoonRedMoon
+        ? `<span style="background:#9e6a03; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">SKIPPED: MOON ➔ RED ➔ MOON</span>`
+        : `<span style="color:#8b949e;">Hunting (Waiting for Red ➔ Moon)</span>`;
 
+    const ppPill = beforePreceding >= 10.00 ? `<b style="color:#e3b341;">${beforePreceding.toFixed(2)}× (Moon)</b>` : beforePreceding < 2.00 ? `<b style="color:#f85149;">${beforePreceding.toFixed(2)}×</b>` : `<span style="color:#8b949e;">${beforePreceding.toFixed(2)}×</span>`;
     const pPill = preceding < 2.00 ? `<b style="color:#f85149;">${preceding.toFixed(2)}× (Red)</b>` : `<span style="color:#8b949e;">${preceding.toFixed(2)}×</span>`;
     const nPill = newest >= 10.00 ? `<b style="color:#e3b341;">${newest.toFixed(2)}× (Moon)</b>` : `<span style="color:#8b949e;">${newest.toFixed(2)}×</span>`;
 
@@ -372,10 +386,11 @@
       </div>
 
       <div style="margin-bottom:8px; background:#161b22; padding:6px 8px; border-radius:6px;">
-        <div style="color:#8b949e; font-size:10px; margin-bottom:4px;">LAST 2 ROUNDS (PATTERN CHECK)</div>
+        <div style="color:#8b949e; font-size:10px; margin-bottom:4px;">LAST 3 ROUNDS (PATTERN CHECK)</div>
         <div style="display:flex; justify-content:space-between; font-size:11px;">
-          <span>Round N-1: ${pPill}</span>
-          <span>Round N: ${nPill}</span>
+          <span>N-2: ${ppPill}</span>
+          <span>N-1: ${pPill}</span>
+          <span>N: ${nPill}</span>
         </div>
         <div style="margin-top:5px; font-size:10px;">${triggerBadge}</div>
       </div>

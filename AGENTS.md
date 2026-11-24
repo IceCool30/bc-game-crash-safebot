@@ -8,10 +8,11 @@ Every AI agent operating in this repository is strictly barred from modifying, r
 1. The **`1.02×`** Auto Cash Out multiplier.
 2. The **100% All-In** capital allocation rule.
 3. The **Continuous Active Hunting** cadence (no hourly throttle; scans and executes 24/7).
-4. The **Red ➔ Moon Trigger Pattern**:
-   - Round $N-1$: Red (`1.00× – 1.99×`). Prior rounds do not matter.
+4. The **Red ➔ Moon Trigger Pattern** (with **Moon ➔ Red ➔ Moon** exclusion):
+   - Round $N-2$: Must **NOT** be Moon (`< 10.00×`). If Round $N-2$ was Moon (`≥ 10.00×`), **do not engage** (skip `Moon ➔ Red ➔ Moon`).
+   - Round $N-1$: Red (`1.00× – 1.99×`).
    - Round $N$: Moon (`≥ 10.00×`).
-   - Round $N+1$: Stake executed on the immediate round following the Moon crash.
+   - Round $N+1$: Stake executed on the immediate round following the Moon crash (only when $N-2$ was not Moon).
 5. The **Pre-Flight Lag & Motion Sentinel**:
    - Tracks live animation frame rate via `requestAnimationFrame`.
    - Any frame gap $\Delta t > 200\text{ms}$ halts order placement until 3 seconds of clean flight elapse.

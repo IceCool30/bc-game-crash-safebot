@@ -8,16 +8,19 @@ Every AI agent operating in this repository is strictly barred from modifying, r
 1. The **`1.02×`** Auto Cash Out multiplier.
 2. The **100% All-In** capital allocation rule.
 3. The **Continuous Active Hunting** cadence (no hourly throttle; scans and executes 24/7).
-4. The **Red ➔ Moon Trigger Pattern** (with **Moon ➔ Red ➔ Moon** exclusion):
-   - Round $N-2$: Must **NOT** be Moon (`< 10.00×`). If Round $N-2$ was Moon (`≥ 10.00×`), **do not engage** (skip `Moon ➔ Red ➔ Moon`).
-   - Round $N-1$: Red (`1.00× – 1.99×`).
-   - Round $N$: Moon (`≥ 10.00×`).
-   - Round $N+1$: Stake executed on the immediate round following the Moon crash (only when $N-2$ was not Moon).
+4. The **4+ Red ➔ Green/Moon Trigger Pattern** (replaces the former Red ➔ Moon pattern):
+   - Track **consecutive Red rounds** (`1.00× – 1.99×`). Rounds before the streak do not matter.
+   - Arm only when the streak has reached **at least 4** consecutive reds (4, 5, 6, …).
+   - The **first non-red round after the streak** must be Green (`2.00× – 9.99×`) or Moon (`10.00× – 99.00×`). If it is Red, the streak simply continues.
+   - Commit on the round **immediately after** that Green/Moon round.
+   - If that Green/Moon round is a **Moon above `99.00×`**, **skip the would-be commit round entirely** and restart tracking from zero.
+   - Startup / reload: tracking **always begins from zero**; pre-existing pills are ignored.
+   - Missing or unreadable round data between the trigger and the commit round: **skip and wait for a fresh pattern**.
 5. The **Pre-Flight Lag & Motion Sentinel**:
    - Tracks live animation frame rate via `requestAnimationFrame`.
    - Any frame gap $\Delta t > 200\text{ms}$ halts order placement until 3 seconds of clean flight elapse.
 6. The **Emergency Queued Order Cancellation Engine**:
-   - Clicks "Cancel" immediately if lag spikes or pattern invalidation occurs while an order is queued.
+   - Clicks "Cancel" immediately if lag spikes, the commit round is unreadable, or the pattern resets while an order is queued.
    - Resets stake to 0 for absolute capital safety.
 
 **AN AGENT HAS ZERO AUTHORITY TO CHANGE THESE RULES UNLESS THE HUMAN USER SPECIFICALLY AND UNAMBIGUOUSLY ORDERS AN EXACT MODIFICATION.**
@@ -32,4 +35,4 @@ If the server or system restarted:
 1. Check tab with `preview_status`.
 2. Open BC.Game Crash tab: `https://bc.game/game/crash`.
 3. Evaluate `crash-agent/src/in-page-engine.js` into active tab.
-4. Confirm `#_crash_bot_panel` mounts and reports `RED ➔ MOON PROTOCOL (1.02×)` and `CONTINUOUS`.
+4. Confirm `#__crash_bot_panel` (alias `window._crash_bot_panel`) mounts and reports `4+ RED -> GREEN/MOON PROTOCOL (1.02×)` and `CONTINUOUS`.

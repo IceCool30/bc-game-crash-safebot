@@ -13,9 +13,11 @@ The BC.Game Crash SafeBot is an autonomous, zero-token in-browser engine designe
 1. **Lag & Desynchronization Traps**: Executing orders during browser frame drops, packet loss, or canvas freezes where cashout requests fail to register.
 2. **Timing & Stagnation Traps**: Staking during unverified market phases without clear momentum signals.
 
-The engine executes the **Red ➔ Moon Protocol**:
+The engine executes the **4+ Red ➔ Green/Moon Protocol**:
 * **The Mathematical Edge**: At **`1.02×`**, the baseline mathematical win probability of any individual round is **`97.06%`** ($99 / 102$).
-* **The Momentum Signal**: By entering only on the immediate round after a **Moon ($\ge 10.00\times$)** that was preceded by a **Red ($1.00\times - 1.99\times$)**, the engine targets momentum transitions.
+* **The Streak Signal**: Track **consecutive Red rounds** ($1.00\times - 1.99\times$). Once the streak reaches **at least 4**, the **first non-red** round (Green $2.00\times-9.99\times$, or Moon $10.00\times-99.00\times$) arms the engine, and the stake is committed on the **immediately following round**. Rounds preceding the streak are irrelevant.
+* **Super-Moon Abort**: If the arming round is a Moon **above $99.00\times$**, the would-be commit round is **skipped** and tracking restarts from zero.
+* **Zero-Based Startup**: Tracking always begins from zero; pre-existing history pills are never counted.
 * **Continuous Active Hunting**: Uncapped hourly limits allow the bot to actively hunt 24/7 whenever the trigger pattern presents itself.
 * **Pre-Flight Lag & Motion Sentinel**: Uses real-time `requestAnimationFrame` delta tracking to hold execution whenever the Crash curve/countdown stutters.
 * **Emergency Abort**: Automatically clicks "Cancel" on a queued order if lag strikes or pattern invalidates before the round starts.
@@ -27,10 +29,12 @@ The engine executes the **Red ➔ Moon Protocol**:
 | Rule | Specification | Guardrail Enforcement |
 | :--- | :--- | :--- |
 | **Auto Cash Out** | **`1.02×`** | Hardcoded. Never increased for "extra profit" or reduced below 1.02x. |
-| **Stake Allocation** | **100% All-In Compounding (Just-In-Time)** | Amount input is strictly zeroed (`0`) during hunting, populated with 100% balance upon Moon pattern trigger, and wiped back to `0` immediately upon settlement. |
+| **Stake Allocation** | **100% All-In Compounding (Just-In-Time)** | Amount input is strictly zeroed (`0`) during hunting, populated with 100% balance when the streak trigger arms, and wiped back to `0` immediately upon settlement. |
 | **Cadence Limit** | **Continuous Active Hunting** | No hourly restriction. Hunts 24/7 across all market cycles. |
-| **Pattern Trigger** | **`Red` ➔ `Moon` (Exclude `Moon ➔ Red ➔ Moon`)** | **Round $N-2$**: Must **NOT** be Moon ($< 10.00\times$).<br/>**Round $N-1$**: Red ($1.00\times - 1.99\times$).<br/>**Round $N$**: Moon ($\ge 10.00\times$). |
-| **Execution Point** | **Immediate Next Round (Round $N+1$)** | Order executed for the round immediately following the Moon crash. |
+| **Pattern Trigger** | **`4+ Red` ➔ `Green/Moon`** | Track consecutive Reds ($1.00\times - 1.99\times$). Arm when streak $\ge 4$ and the next round is Green ($2.00\times - 9.99\times$) or Moon ($10.00\times - 99.00\times$). If that round is Red, the streak continues. Prior rounds do not matter. |
+| **Super-Moon Abort** | **Moon $> 99.00\times$** | Skip the would-be commit round entirely; reset tracking to zero. |
+| **Execution Point** | **Immediate Next Round** | Order executed for the round immediately following the Green/Moon trigger round. |
+| **Startup / Missing Data** | **Zero-based, skip-on-ambiguity** | Tracking begins from zero on every injection. Unreadable rounds between trigger and commit abort the pattern and wait for a fresh one. |
 | **Lag & Motion Sentinel** | **Real-Time Frame Rate Monitor** | Tracks frame deltas via `requestAnimationFrame`. If $\Delta t > 200\text{ms}$, flags lag and holds orders. Requires 3s clean flight to clear. |
 | **Emergency Abort** | **Queued Order Cancellation** | If an order is queued and lag strikes or pattern verification fails, clicks **`Cancel`** immediately before the round launches. |
 
@@ -59,10 +63,13 @@ bc-game-crash-safebot/
 
 ```mermaid
 flowchart TD
-    Hunt["🔍 Phase: HUNTING (Active 24/7)<br/>Scanning Live History Pills"] --> Check{"Evaluate Last 2 Rounds"}
+    Hunt["🔍 Phase: HUNTING (Active 24/7)<br/>Streak starts at 0 on boot"] --> Check{"New settled round"}
     
-    Check -- "Round N-1: Red (< 2.00x)<br/>AND Round N: Moon (>= 10.00x)" --> LagCheck{"Lag Sentinel Check<br/>Smooth Frame Rate for 3s?"}
-    Check -- "Other Pattern" --> Hunt
+    Check -- "Red (1.00-1.99x)" --> Streak["Count consecutive REDs<br/>Arm eligible at 4+"]
+    Streak --> Hunt
+    Check -- "Non-red with streak < 4" --> Reset["Reset to 0"] --> Hunt
+    Check -- "Green/Moon with streak >= 4<br/>AND Moon <= 99.00x" --> LagCheck{"Lag Sentinel Check<br/>Smooth Frame Rate for 3s?"}
+    Check -- "Moon > 99.00x" --> SuperSkip["SKIP would-be commit round<br/>Reset to 0"] --> Hunt
     
     LagCheck -- "Lag Spike / Stutter (dt > 200ms)" --> LagHold["⚠️ HOLD (LAG DETECTED)<br/>Stake = 0, Waiting for Smooth Flight"]
     LagHold --> LagCheck
@@ -72,7 +79,8 @@ flowchart TD
     QueueBet --> CountdownWindow{"Countdown Window (6.0s ➔ 0.0s)"}
     
     CountdownWindow -- "Lag Spike Detected" --> Abort["🚨 EMERGENCY CANCEL<br/>Click Cancel, Zero Stake, Hold"]
-    CountdownWindow -- "Pattern Invalidated" --> Abort
+    CountdownWindow -- "Unreadable round / pattern reset" --> Abort
+    CountdownWindow -- "No settlement within 90s" --> Abort
     Abort --> Hunt
     
     CountdownWindow -- "Round Launches Cleanly" --> Flight["🛸 Round In Flight<br/>Waiting for Auto Cash Out @ 1.02x"]
@@ -92,4 +100,4 @@ flowchart TD
 * **Disaster Recovery**:
   1. Open BC.Game Crash tab: `https://bc.game/game/crash`.
   2. Inject `crash-agent/src/in-page-engine.js` via `preview_evaluate`.
-  3. Confirm `#_crash_bot_panel` mounts and displays `RED ➔ MOON PROTOCOL (1.02×)` and `CONTINUOUS`.
+  3. Confirm `#__crash_bot_panel` mounts and displays `4+ RED -> GREEN/MOON PROTOCOL (1.02×)` and `CONTINUOUS`.

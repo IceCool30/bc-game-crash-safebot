@@ -1,13 +1,13 @@
 ---
 name: bc-game-crash-safebot
-description: Autonomous BC.Game Crash engine executing the continuous Red -> Moon 1.02x protocol with in-page animation frame lag detection, emergency queued order abort, and zero-token DOM operations. Automatically scaffolds the workspace (AGENTS.md, PROJECT_CORE.md, engine scripts), inspects the browser, injects the in-page engine, and confirms active hunting immediately upon skill invocation, even without any user prompt.
+description: Autonomous BC.Game Crash engine executing the continuous 4+ Red -> Green/Moon 1.02x protocol with in-page animation frame lag detection, emergency queued order abort, and zero-token DOM operations. Automatically scaffolds the workspace (AGENTS.md, PROJECT_CORE.md, engine scripts), inspects the browser, injects the in-page engine, and confirms active hunting immediately upon skill invocation, even without any user prompt.
 ---
 
-# BC.Game Crash SafeBot: Red ➔ Moon Protocol
+# BC.Game Crash SafeBot: 4+ Red ➔ Green/Moon Protocol
 
 > [!CAUTION]
 > **CRITICAL ARCHITECTURAL DIRECTIVE FOR ALL AGENTS**
-> Every AI agent operating in this project is strictly barred from modifying the `1.02×` cashout target, the 100% All-In stake allocation, the `Red -> Moon` trigger pattern, the lag motion sentinel, or the emergency queued order cancellation engine. Only the human user has authority to order alterations.
+> Every AI agent operating in this project is strictly barred from modifying the `1.02×` cashout target, the 100% All-In stake allocation, the `4+ Red -> Green/Moon` trigger pattern, the lag motion sentinel, or the emergency queued order cancellation engine. Only the human user has authority to order alterations.
 
 ---
 
@@ -42,7 +42,7 @@ description: Autonomous BC.Game Crash engine executing the continuous Red -> Moo
 > ### Step 3: Verify and Confirm Active Hunting
 > * Call `preview_evaluate` with expression `document.getElementById('__crash_bot_panel')?.innerText` to verify that the floating HUD card mounted.
 > * Verify that the HUD confirms:
->   * `RED ➔ MOON PROTOCOL (1.02×)`
+>   * `4+ RED -> GREEN/MOON PROTOCOL (1.02×)`
 >   * `CONTINUOUS`
 >   * `Phase: HUNTING`
 >   * Smooth frame rate (`🟢 Smooth`)
@@ -55,9 +55,12 @@ description: Autonomous BC.Game Crash engine executing the continuous Red -> Moo
 The engine executes an aggressive compounding model anchored by high mathematical win rates and real-time network/motion protection:
 1. **The Target Multiplier**: **`1.02×`** Auto Cash Out (baseline win probability $\approx 97.06\%$).
 2. **The Trigger Pattern**:
-   * **Round $N-1$**: Any Red multiplier (**`1.00× – 1.99×`**). Prior rounds do not matter.
-   * **Round $N$**: Any Moon multiplier (**`≥ 10.00×`**).
-   * **Round $N+1$**: Executed immediately on the next round following the Moon crash.
+   * Track **consecutive Red** multipliers (**`1.00× – 1.99×`**); prior rounds do not matter.
+   * Arm at **4 or more** consecutive reds.
+   * The **first non-red** round must be **Green** (`2.00× – 9.99×`) or **Moon** (`10.00× – 99.00×`). If it is Red, the streak continues.
+   * Commit on the round **immediately after** that Green/Moon.
+   * If that round is a **Moon above `99.00×`**, skip the would-be commit and restart tracking from zero.
+   * Tracking always starts from zero; unreadable rounds abort the pattern.
 3. **Continuous Active Hunting**: No hourly limits. Hunts 24/7 across all market hours.
 4. **Pre-Flight Lag & Motion Sentinel**:
    * Measures `requestAnimationFrame` frame deltas in real time.
@@ -76,8 +79,9 @@ The engine executes an aggressive compounding model anchored by high mathematica
 | **Auto Cash Out** | **`1.02×`** | Hardcoded into the execution panel. |
 | **Stake Allocation** | **100% All-In** | Available balance extracted from `.rr-mask` and pre-staged continuously. |
 | **Cadence** | **Continuous Hunting** | Uncapped 24/7 scanning. |
-| **Pattern Setup** | **`Red (< 2.00×)` ➔ `Moon (≥ 10.00×)`** | Verified against top live pills (`pills[1] < 2.00 && pills[0] >= 10.00`). |
-| **Execution Point** | **Immediate Next Round** | Clicks `Next Round` / primary action button right after the Moon crashes. |
+| **Pattern Setup** | **`4+ Red (< 2.00×)` ➔ `Green/Moon (≥ 2.00×, ≤ 99.00×)`** | Streak counter over settled pills; first non-red after 4+ reds arms the commit. |
+| **Super-Moon Abort** | **Moon > `99.00×`** | Skip would-be commit; tracking reset to zero. |
+| **Execution Point** | **Immediate Next Round** | Clicks `Next Round` / primary action button right after the Green/Moon trigger settles. |
 | **Lag Detection** | **Animation Frame Delta Monitor** | `requestAnimationFrame` tracking. Halts if $\Delta t > 200\text{ms}$. |
 | **Emergency Abort** | **Instant Queued Order Cancel** | Clicks `Cancel` before round start if jitter spikes or pattern invalidates. |
 
@@ -87,10 +91,13 @@ The engine executes an aggressive compounding model anchored by high mathematica
 
 ```mermaid
 flowchart TD
-    Hunt["🔍 Phase: HUNTING (Active 24/7)<br/>Scanning Live History Pills"] --> Check{"Evaluate Last 2 Rounds"}
+    Hunt["🔍 Phase: HUNTING (Active 24/7)<br/>Streak starts at 0"] --> Check{"New settled round"}
     
-    Check -- "Round N-1: Red (< 2.00x)<br/>AND Round N: Moon (>= 10.00x)" --> LagCheck{"Lag Sentinel Check<br/>Smooth Frame Rate for 3s?"}
-    Check -- "Other Pattern" --> Hunt
+    Check -- "Red (1.00-1.99x)" --> Streak["Count consecutive REDs<br/>Arm eligible at 4+"]
+    Streak --> Hunt
+    Check -- "Non-red with streak < 4" --> Reset["Reset to 0"] --> Hunt
+    Check -- "Green/Moon with streak >= 4<br/>AND Moon <= 99.00x" --> LagCheck{"Lag Sentinel Check<br/>Smooth Frame Rate for 3s?"}
+    Check -- "Moon > 99.00x" --> Skip["SKIP commit, reset to 0"] --> Hunt
     
     LagCheck -- "Lag Spike / Stutter (dt > 200ms)" --> LagHold["⚠️ HOLD (LAG DETECTED)<br/>Stake = 0, Waiting for Smooth Flight"]
     LagHold --> LagCheck
@@ -120,7 +127,7 @@ If the system or browser restarted:
 1. Open BC.Game Crash tab: `preview_open` with `url: "https://bc.game/game/crash"`, `profileId: "default"`.
 2. Evaluate `crash-agent/src/in-page-engine.js` into the tab via `preview_evaluate`.
 3. Verify that the HUD mounts on the lower right showing:
-   * `RED ➔ MOON PROTOCOL (1.02×)`
+   * `4+ RED -> GREEN/MOON PROTOCOL (1.02×)`
    * `CONTINUOUS`
    * `🟢 Smooth (60 FPS)`
    * `Phase: HUNTING`
@@ -143,10 +150,12 @@ Every AI agent operating in this repository is strictly barred from modifying, r
 1. The **`1.02×`** Auto Cash Out multiplier.
 2. The **100% All-In** capital allocation rule.
 3. The **Continuous Active Hunting** cadence (no hourly throttle; scans and executes 24/7).
-4. The **Red ➔ Moon Trigger Pattern**:
-   - Round $N-1$: Red (`1.00× – 1.99×`). Prior rounds do not matter.
-   - Round $N$: Moon (`≥ 10.00×`).
-   - Round $N+1$: Stake executed on the immediate round following the Moon crash.
+4. The **4+ Red ➔ Green/Moon Trigger Pattern**:
+   - Track consecutive Reds (`1.00× – 1.99×`); prior rounds do not matter.
+   - Arm at 4 or more consecutive reds when the next round is Green (`2.00× – 9.99×`) or Moon (`10.00× – 99.00×`). If it is Red, the streak continues.
+   - Commit on the round immediately following that Green/Moon.
+   - If the arming round is a Moon above `99.00×`, skip the would-be commit and restart tracking from zero.
+   - Tracking begins from zero on every injection; unreadable rounds cause a skip and a fresh pattern.
 5. The **Pre-Flight Lag & Motion Sentinel**:
    - Tracks live animation frame rate via `requestAnimationFrame`.
    - Any frame gap $\Delta t > 200\text{ms}$ halts order placement until 3 seconds of clean flight elapse.
@@ -166,7 +175,7 @@ If the server or system restarted:
 1. Check tab with `preview_status`.
 2. Open BC.Game Crash tab: `https://bc.game/game/crash`.
 3. Evaluate `crash-agent/src/in-page-engine.js` into active tab.
-4. Confirm `#_crash_bot_panel` mounts and reports `RED ➔ MOON PROTOCOL (1.02×)` and `CONTINUOUS`.
+4. Confirm `#__crash_bot_panel` mounts and reports `4+ RED -> GREEN/MOON PROTOCOL (1.02×)` and `CONTINUOUS`.
 ```
 
 ### File 2: `PROJECT_CORE.md`

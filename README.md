@@ -1,4 +1,4 @@
-# BC.Game Crash SafeBot (Red ➔ Moon Protocol)
+# BC.Game Crash SafeBot (4+ Red ➔ Green/Moon Protocol)
 
 An autonomous, client-side browser automation engine for BC.Game Crash executing an ultra-conservative **`1.02×`** compounding protocol, real-time animation-frame lag detection, and emergency fail-safe aborts.
 
@@ -12,9 +12,12 @@ An autonomous, client-side browser automation engine for BC.Game Crash executing
 
 * **The Cashout Target**: Hardcoded to **`1.02×`** Auto Cash Out (~97.06% baseline statistical win probability).
 * **The Trigger Pattern**:
-  * **Round $N-1$**: Any **Red** multiplier (`1.00× – 1.99×`). Prior rounds do not matter.
-  * **Round $N$**: Any **Moon** multiplier (`≥ 10.00×`).
-  * **Round $N+1$**: The bot automatically executes the order on the immediate round following the Moon crash.
+  * Track **consecutive Red** multipliers (`1.00× – 1.99×`); rounds before the streak do not matter.
+  * Arm once the streak reaches **4 or more** reds.
+  * The **next round** must be **Green** (`2.00× – 9.99×`) or **Moon** (`10.00× – 99.00×`). If it is another Red, the streak just continues.
+  * The bot commits on the round **immediately after** that Green/Moon.
+  * If that Green/Moon is a **Moon above `99.00×`**, the would-be commit is **skipped** and tracking restarts from zero.
+  * On startup, tracking **always begins from zero** — existing history is ignored.
 * **Capital Compounding**: 100% All-In of the liquid active balance detected on screen.
 * **Continuous Hunting**: Scans rounds 24/7 continuously (no hourly quota limit).
 * **Pre-Flight Lag & Motion Sentinel**:
@@ -55,7 +58,7 @@ This is the fastest way to run the bot without installing anything.
    * Look at the bottom-right corner of your browser screen.
    * You will see a dark floating HUD card titled:
      ```text
-     RED ➔ MOON PROTOCOL (1.02×)       CONTINUOUS
+     4+ RED -> GREEN/MOON PROTOCOL (1.02×)       CONTINUOUS
      ```
    * As long as this HUD is visible, the bot is actively scanning rounds.
 7. **How to Stop the Bot**:
@@ -75,10 +78,10 @@ If you do not want to open the console and paste code every time, you can have i
    * Replace whatever template text appears with the following header:
      ```javascript
      // ==UserScript==
-     // @name         BC.Game Crash SafeBot (Red -> Moon 1.02x)
+     // @name         BC.Game Crash SafeBot (4+ Red -> Green/Moon 1.02x)
      // @namespace    https://bc.game/
      // @version      1.0
-     // @description  Autonomous Red -> Moon 1.02x SafeBot for BC.Game Crash
+     // @description  Autonomous 4+ Red -> Green/Moon 1.02x SafeBot for BC.Game Crash
      // @match        https://bc.game/game/crash*
      // @grant        none
      // ==/UserScript==
@@ -97,9 +100,9 @@ When the bot is running, the on-screen dashboard provides live feedback:
 
 | HUD Section | What It Displays | What It Means |
 | :--- | :--- | :--- |
-| **Header** | `RED ➔ MOON PROTOCOL (1.02×)` | The active strategy and cashout target. |
+| **Header** | `4+ RED -> GREEN/MOON PROTOCOL (1.02×)` | The active strategy and cashout target. |
 | **Capital & Pre-stage** | Current detected balance (`100%`) | The amount staged into the capital input. |
-| **Last 2 Rounds** | `Round N-1: [Value]` & `Round N: [Value]` | Live tracking of recent multipliers. Highlights when `Red ➔ Moon` occurs. |
+| **Streak Tracker** | `N consecutive REDs` + recent multipliers | Live streak counter. Arms at 4+ reds followed by a Green/Moon. |
 | **Lag Sentinel** | `🟢 Smooth (60 FPS)` | Connection and graphics are smooth and safe for execution. |
 | **Lag Sentinel** | `⚠️ HOLD (LAG DETECTED)` | Frame jitter or lag detected. Orders are temporarily locked until 3 seconds of clean motion elapse. |
 | **Phase** | `HUNTING` / `QUEUED` / `IN FLIGHT` | Current operational state. |

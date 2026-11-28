@@ -56,6 +56,7 @@
     phase: 'hunting', // 'hunting' | 'armed' | 'queued' | 'lag_hold' | 'settled'
     history: prevHistory,
     lastLoggedMult: null,
+    lastPillsSig: null,
     initialized: false,
 
     // Pattern state (starts from zero on every injection / reload)
@@ -379,14 +380,20 @@
     const newest = pills[0];
     const b = window.__CRASH_BOT__;
 
+    const sig = pills.join('|');
+
     if (!b.initialized) {
       b.initialized = true;
       b.lastLoggedMult = newest;
+      b.lastPillsSig = sig;
       b.streak.lastEvent = 'Tracking started from zero (no historical rounds counted)';
       return;
     }
 
-    if (newest !== b.lastLoggedMult) {
+    // Compare the full pill list so two consecutive rounds with an identical
+    // multiplier are still counted as two separate rounds.
+    if (sig !== b.lastPillsSig) {
+      b.lastPillsSig = sig;
       b.lastLoggedMult = newest;
       processNewRound(newest);
     }
